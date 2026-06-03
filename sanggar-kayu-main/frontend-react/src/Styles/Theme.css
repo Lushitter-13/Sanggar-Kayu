@@ -1,0 +1,88 @@
+:root {
+  /* =========================
+     BORDER RADIUS
+  ========================= */
+  --radius: 8px;
+
+  /* =========================
+     BACKGROUND
+  ========================= */
+  --background: #fdfbf7;
+  --background-secondary: #fafafa;
+  --background-card: #ffffff;
+  --background-sidebar: #2d1b12;
+
+  /* =========================
+     TEXT
+  ========================= */
+  --text-primary: #291508;
+  --text-secondary: #777777;
+  --text-muted: #999999;
+  --text-white: #ffffff;
+
+  /* =========================
+     PRIMARY COLOR
+  ========================= */
+  --primary: #7b4f37;
+  --primary-hover: #5f3b28;
+  --primary-light: #d6b08c;
+  --primary-foreground: #ffffff;
+
+  /* =========================
+     STATUS COLOR
+  ========================= */
+  --success: #52c41a;
+  --warning: #faad14;
+  --danger: #ff4d4f;
+  --info: #1677ff;
+
+  /* =========================
+     BORDER & INPUT
+  ========================= */
+  --border: #e5e5e5;
+  --input-border: #d9d9d9;
+  --input-background: #ffffff;
+
+  /* =========================
+     CARD
+  ========================= */
+  --card: #ffffff;
+  --card-foreground: #291508;
+
+  /* =========================
+     SIDEBAR
+  ========================= */
+  --sidebar: #2d1b12;
+  --sidebar-foreground: #f5f5f5;
+  --sidebar-accent: #3b2418;
+  --sidebar-border: #4a2d1d;
+  --sidebar-hover: rgba(143, 80, 36, 0.25);
+
+  /* =========================
+     GRADIENT
+  ========================= */
+  --gradient-wood: linear-gradient(
+    135deg,
+    #7b4f37,
+    #5f3b28
+  );
+
+  --gradient-amber: linear-gradient(
+    135deg,
+    #f6b73c,
+    #d98c1f
+  );
+
+  /* =========================
+     SHADOW
+  ========================= */
+  --shadow-soft: 0 2px 10px rgba(0, 0, 0, 0.08);
+
+  --shadow-wood: 0 10px 30px rgba(95, 59, 40, 0.25);
+
+  /* =========================
+     TRANSITION
+  ========================= */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+}

@@ -1,0 +1,41 @@
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.login-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: #8f5024;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin: 0 auto 16px;
+}
+
+.login-icon-svg {
+  font-size: 28px;
+  color: white;
+}
+
+.login-title {
+  margin-bottom: 4px !important;
+}
+
+.login-subtitle {
+  font-size: 14px;
+}
+
+.login-button-wrapper {
+  margin-bottom: 0 !important;
+}
