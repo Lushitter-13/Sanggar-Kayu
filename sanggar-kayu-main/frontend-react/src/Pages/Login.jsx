@@ -14,7 +14,7 @@ const Index = () => {
   const navigate = useNavigate();
 
   const onFinish = async  (values) => {
-    console.log("Masuk onFinish!")
+    // console.log("Masuk onFinish!")
     try {
       setLoading(true);
       const response = await fetch(
@@ -29,7 +29,7 @@ const Index = () => {
       )
 
       const data = await response.json();
-      console.log("Data", data);
+      // console.log("Data", data);
 
       if (!data.success) {
         message.error(data.message);
@@ -38,6 +38,10 @@ const Index = () => {
 
       message.success(data.message);
       console.log(data.user);
+      localStorage.setItem(
+        "user",
+        JSON.stringify(data.user)
+      );
       navigate("/dashboard");
     }
     

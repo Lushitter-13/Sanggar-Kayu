@@ -156,14 +156,14 @@
   color: var(--text-white);
 }
 
-.user-email {
+.user-greeting {
   font-size: 12px;
 
   color: var(--text-muted-dark);
 }
 
 .logout-button {
-  color: var(--text-muted-dark);
+  color: var(--text-danger);
 }
 
 .logout-button:hover {

@@ -38,6 +38,13 @@ def login(data: dict):
             "id": user["id"],
             "username": user["username"],
             "name": user["name"],
-            "role": user["role"]
+            "role": user["role"],
         }
+    }
+    
+@router.post("/logout")
+def logout():
+    return {
+        "success": True,
+        "message": "Logout berhasil"
     }
