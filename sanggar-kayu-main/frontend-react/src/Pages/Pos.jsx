@@ -7,6 +7,7 @@ import {
   Form,
   Select,
   DatePicker,
+  InputNumber,
 } from "antd";
 
 import {
@@ -15,7 +16,6 @@ import {
   DeleteOutlined,
   ShoppingCartOutlined,
   SearchOutlined,
-  InputNumber,
 } from "@ant-design/icons";
 
 import { useMemo, useState } from "react";
@@ -178,8 +178,17 @@ const Transactions = () => {
               onClick={() => setOpenCustomModal(true)}
             >
               <div className="custom-product-content">
-                <PlusOutlined />
-                <span>Other Item</span>
+                <div className="custom-product-icon">
+                  📦<PlusOutlined />
+                </div>
+
+                <div className="custom-product-title">
+                  Other Item
+                </div>
+
+                <div className="custom-product-subtitle">
+                  Add custom product manually
+                </div>
               </div>
             </Card>
             {filteredProducts.map((product) => {
