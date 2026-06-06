@@ -15,6 +15,7 @@ import {
   DeleteOutlined,
   ShoppingCartOutlined,
   SearchOutlined,
+  InputNumber,
 } from "@ant-design/icons";
 
 import { useMemo, useState } from "react";
@@ -64,6 +65,13 @@ const Transactions = () => {
     const [search, setSearch] = useState("");
     const [cart, setCart] = useState([]);
     const [openModal, setOpenModal] = useState(false);
+    const [openCustomModal, setOpenCustomModal] = useState(false);
+
+    const [customForm, setCustomForm] = useState({
+      name: "",
+      price_sell: "",
+      description: "",
+    });
 
     const filteredProducts = useMemo(() => {
         return productsData.filter((product) => {
@@ -121,6 +129,29 @@ const Transactions = () => {
     
     const total = subtotal + tax;
 
+    const addCustomItem = () => {
+
+      const customItem = {
+        code: `CUST-${Date.now()}`,
+        name: customForm.name,
+        price_sell: parseFloat(customForm.price_sell),
+        price_promo: 0,
+        description: customForm.description.length > 0 ? customForm.description : null,
+        qty: 999,
+        status: 1,
+      }
+
+      addToCart(customItem);
+
+      setCustomForm({
+        name: "",
+        price_sell: "",
+        description: "",
+      });
+
+      setOpenCustomModal(false);
+    }
+
     return (
       <div className="pos-layout">
 
@@ -142,6 +173,15 @@ const Transactions = () => {
           />
 
           <div className="product-grid">
+            <Card
+              className="custom-product-card"
+              onClick={() => setOpenCustomModal(true)}
+            >
+              <div className="custom-product-content">
+                <PlusOutlined />
+                <span>Other Item</span>
+              </div>
+            </Card>
             {filteredProducts.map((product) => {
               const price = product.price_promo > 0 ? product.price_promo : product.price_sell;
 
@@ -204,7 +244,7 @@ const Transactions = () => {
 
                       <div className="cart-item-info">
 
-                        <p className="cart-item-name">{item.name}</p>
+                        <p className="cart-item-name">{item.name} {item.is_custom && (<Tag color="gold">Custom</Tag>)}</p>
                         <p className="cart-item-price">{formatIDR(price)}</p>
 
                       </div>
@@ -307,6 +347,66 @@ const Transactions = () => {
               </Button>
           </Form>
 
+        </Modal>
+
+        <Modal
+          open={openCustomModal}
+          title="Add Custom Item"
+          footer={null}
+          onCancel={() => setOpenCustomModal(false)}
+        >
+          <Form layout="vertical">
+            <Form.Item label="Nama Produk" required>
+              <Input
+                value={customForm.name}
+                onChange={(e) =>
+                  setCustomForm({
+                    ...customForm,
+                    name: e.target.value,
+                  })
+                }
+              />
+            </Form.Item>
+
+            <Form.Item label="Harga" required>
+              <InputNumber
+                style={{ width: "100%" }}
+                value={customForm.price_sell}
+                onChange={(value) =>
+                  setCustomForm({
+                    ...customForm,
+                    price_sell: value,
+                  })
+                }
+              />
+            </Form.Item>
+
+            <Form.Item label="Description">
+              <Input.TextArea
+                rows={3}
+                value={customForm.description}
+                onChange={(e) =>
+                  setCustomForm({
+                    ...customForm,
+                    description: e.target.value,
+                  })
+                }
+              />
+            </Form.Item>
+
+            <Button
+              type="primary"
+              block
+              onClick={addCustomItem}
+              disabled={
+                !customForm.name ||
+                !customForm.price_sell
+              }
+            >
+              Add Item
+            </Button>
+
+          </Form>
         </Modal>
 
       </div>
