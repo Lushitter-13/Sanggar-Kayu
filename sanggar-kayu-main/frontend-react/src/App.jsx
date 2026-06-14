@@ -7,6 +7,7 @@ import Dashboard from "./Pages/Dashboard";
 import Transactions from "./Pages/Transactions";
 import Products from "./Pages/Products";
 import Pos from  "./Pages/Pos";
+import User from "./Pages/User";
 import "antd/dist/reset.css";
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/products" element={<Products />} />
           <Route path="/pos" element={<Pos />} />
+          <Route path="/user" element={<User />} />
         </Route>
       </Routes>
     </BrowserRouter>

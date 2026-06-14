@@ -8,6 +8,7 @@ import {
   LogoutOutlined,
   BellOutlined,
   SearchOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
 
 import { Input, Button, message } from 'antd';
@@ -36,6 +37,11 @@ const nav = [
         label: "Transactions",
         icon: DatabaseOutlined
     },
+    {
+        path: "/user",
+        label: "User",
+        icon: UserOutlined
+    }
 ];
 
 const AppLayout = () => {

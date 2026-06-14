@@ -220,3 +220,76 @@ def updateStock(id, qty):
         conn.rollback()
         print(e)
         return False
+    
+# User
+def get_users(user_id=None, username=None, role=None):
+    query = "SELECT * FROM user WHERE 1=1"
+    params = []
+    
+    if user_id is not None:
+        query += " AND id = %s"
+        params.append(user_id)
+        
+    if username is not None:
+        query += " AND username = %s"
+        params.append(username)
+
+    if role is not None:
+        query += " AND role = %s"
+        params.append(role)
+
+    cursor.execute(query, params)
+
+    return cursor.fetchall()
+
+def add_user(name, username, password, role, is_active=True):
+    sql = """
+    INSERT INTO user(name, username, password, role, is_active)
+    VALUES(%s, %s, %s, %s, %s)
+    """
+
+    cursor.execute(sql, (name, username, password, role, is_active))
+    conn.commit()
+    
+# Profile
+def edit_profile(user_id, name=None, username=None, password=None, role=None):
+    try:
+        fields = []
+        values = []
+
+        if name is not None:
+            fields.append("name = %s")
+            values.append(name)
+
+        if username is not None:
+            fields.append("username = %s")
+            values.append(username)
+
+        if password is not None:
+            fields.append("password = %s")
+            values.append(password)
+
+        if role is not None:
+            fields.append("role = %s")
+            values.append(role)
+
+        if not fields:
+            return False
+
+        sql = f"""
+        UPDATE user
+        SET {", ".join(fields)}
+        WHERE id = %s
+        """
+
+        values.append(user_id)
+
+        affected_rows = cursor.execute(sql, tuple(values))
+        conn.commit()
+
+        return affected_rows
+
+    except Exception as e:
+        conn.rollback()
+        print(e)
+        return False

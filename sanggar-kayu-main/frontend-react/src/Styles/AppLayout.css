@@ -277,7 +277,7 @@
 
   overflow-y: auto;
 
-  background: var(--background-secondary);
+  background: var(--background-primary);
 }
 
 .page-inner {
