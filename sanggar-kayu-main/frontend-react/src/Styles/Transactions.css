@@ -52,14 +52,16 @@
 }
 
 .export-button {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: var(--primary-foreground);
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+  border-color: var(--secondary-border);
 }
 
-.export-button:hover {
-  background: var(--primary-hover) !important;
-  border-color: var(--primary-hover) !important;
+.export-button:hover,
+.export-button:focus {
+  background: var(--secondary-hover) !important;
+  color: var(--primary) !important;
+  border-color: var(--primary) !important;
 }
 
 /* SUMMARY */

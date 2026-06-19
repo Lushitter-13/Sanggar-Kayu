@@ -30,6 +30,14 @@
   --primary-foreground: #ffffff;
 
   /* =========================
+      SECONDARY COLOR
+   ========================= */
+   --secondary: #ffffff;
+   --secondary-hover: #f7f0eb;
+   --secondary-foreground: #291508;
+   --secondary-border: #d9d9d9;
+
+  /* =========================
      STATUS COLOR
   ========================= */
   --success: #52c41a;

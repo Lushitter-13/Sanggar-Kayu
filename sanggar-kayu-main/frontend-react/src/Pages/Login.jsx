@@ -29,7 +29,7 @@ const Index = () => {
       )
 
       const data = await response.json();
-      // console.log("Data", data);
+      console.log("Data", data);
 
       if (!data.success) {
         message.error(data.message);

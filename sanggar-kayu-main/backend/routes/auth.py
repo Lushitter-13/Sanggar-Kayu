@@ -39,6 +39,7 @@ def login(data: dict):
             "username": user["username"],
             "name": user["name"],
             "role": user["role"],
+            "is_active": user["is_active"],
         }
     }
     

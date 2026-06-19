@@ -358,6 +358,19 @@
   border-color: var(--primary-hover) !important;
 }
 
+.ant-btn-default {
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+  border-color: var(--secondary-border);
+}
+
+.ant-btn-default:hover,
+.ant-btn-default:focus {
+  background: var(--secondary-hover) !important;
+  color: var(--primary) !important;
+  border-color: var(--primary) !important;
+}
+
 .ant-table-thead > tr > th {
   background: var(--background-secondary) !important;
   color: var(--text-primary) !important;
@@ -388,4 +401,38 @@
   .profile-actions button {
     flex: 1;
   }
+  
+}
+
+.edit-profile-button {
+  border-color: var(--border);
+  color: var(--text-primary);
+}
+
+.edit-profile-button:hover,
+.edit-profile-button:focus {
+  color: var(--primary) !important;
+  border-color: var(--primary) !important;
+  background: rgba(123, 79, 55, 0.05) !important;
+}
+
+/* =========================
+   MODAL
+========================= */
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.modal-footer .ant-btn-primary {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.modal-footer .ant-btn-primary:hover {
+  background: var(--primary-hover) !important;
+  border-color: var(--primary-hover) !important;
 }

@@ -139,7 +139,11 @@ const permissions = [
 const Profile = () => {
   const [selectedRole, setSelectedRole] = useState(1);
   const [openUserModal, setOpenUserModal] = useState(false);
+  const [openEditProfileModal, setOpenEditProfileModal] = useState(false);
+  const [openChangePasswordModal, setOpenChangePasswordModal] = useState(false);
   const [form] = Form.useForm();
+  const [editProfileForm] = Form.useForm();
+  const [changePasswordForm] = Form.useForm();
 
   // Bikin inisial nama bwt avatar
   const getInitials = (name) => {
@@ -287,9 +291,32 @@ const Profile = () => {
           </div>
 
           <div className="profile-actions">
-            <Button>Edit Profile</Button>
+            <Button
+              className="edit-profile-btn"
+              onClick={() => {
+                  const formData = {
+                    name: user.name,
+                    username: user.username,
+                    role: user.role,
+                    is_active: user.is_active === 1,
+                  }
 
-            <Button type="primary">Ubah Password</Button>
+                  editProfileForm.setFieldsValue(formData);
+
+                  setOpenEditProfileModal(true)
+                }
+              }
+            >
+              Edit Profile
+            </Button>
+
+            <Button
+              type="primary"
+              onClick={() => setOpenChangePasswordModal(true)
+              }
+            >
+              Ubah Password
+            </Button>
           </div>
         </div>
       </Card>
@@ -375,6 +402,7 @@ const Profile = () => {
         />
       </Card>
 
+      {/* Add User Modal */}
       <Modal
         title="Tambah User Baru"
         open={openUserModal}
@@ -464,6 +492,165 @@ const Profile = () => {
           >
             <Switch />
           </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Edit Profile Modal */}
+      <Modal
+        title="Edit Profile"
+        open={openEditProfileModal}
+        onCancel={() => 
+          setOpenEditProfileModal(false)
+        }
+        footer= {null}
+        centered
+      >
+
+        <Form
+          form={editProfileForm}
+          layout="vertical"
+          onFinish={(values) => {
+            console.log("Edit Profile Values:", values);
+            // bisa di masukin API
+
+            setOpenEditProfileModal(false);
+          }}
+        >
+
+          <Form.Item
+            label="Nama"
+            name="name"
+            rules={[{
+              required: true,
+              message: "Nama wajib diisi",
+            }]}
+            >
+              <Input />
+          </Form.Item>
+
+          <Form.Item
+            label="Username"
+            name="username"
+            rules={[
+              {
+                required: true,
+                message: "Username wajib diisi",
+              },
+            ]}
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            label="Role"
+            name="role"
+          >
+            <Select
+              options={roles.map((role) => ({
+                value: role.id,
+                label: role.label,
+              }))}
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="Status Aktif"
+            name="is_active"
+            valuePropName="checked"
+          >
+            <Switch />
+          </Form.Item>
+
+          <div className="modal-footer">
+              <Button onClick={() => setOpenEditProfileModal(false)}>
+                Cancel
+              </Button>
+
+              <Button
+                type="primary"
+                htmlType="submit"
+              >
+                Save Changes
+              </Button>
+          </div>
+
+        </Form>
+      </Modal>
+
+      {/* Change Password Modal */}
+      <Modal
+        title="Ubah Password"
+        open={openChangePasswordModal}
+        onCancel={() => setOpenChangePasswordModal(false)}
+        footer={null}
+        centered
+      >
+        <Form
+          form={changePasswordForm}
+          layout="vertical"
+          onFinish={(values) => {
+            console.log(values);
+
+            setOpenChangePasswordModal(false);
+          }}
+        >
+          <Form.Item
+            label="Password Baru"
+            name="password"
+            rules={[
+              {
+                required: true,
+                message: "Password wajib diisi",
+              },
+            ]}
+          >
+            <Input.Password />
+          </Form.Item>
+
+          <Form.Item
+            label="Konfirmasi Password"
+            name="confirm_password"
+            dependencies={["password"]}
+            rules={[
+              {
+                required: true,
+                message: "Konfirmasi password wajib diisi",
+              },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  if (
+                    !value ||
+                    getFieldValue("password") === value
+                  ) {
+                    return Promise.resolve();
+                  }
+
+                  return Promise.reject(
+                    new Error(
+                      "Konfirmasi password tidak sama"
+                    )
+                  );
+                },
+              }),
+            ]}
+          >
+            <Input.Password />
+          </Form.Item>
+
+          <div className="modal-footer">
+            <Button
+              onClick={() => setOpenChangePasswordModal(false)}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              type="primary"
+              htmlType="submit"
+            >
+              Simpan
+            </Button>
+          </div>
         </Form>
       </Modal>
     </div>
