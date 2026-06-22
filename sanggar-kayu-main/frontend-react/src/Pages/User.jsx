@@ -421,6 +421,11 @@ const Profile = () => {
             console.log("Form Values:", values);
             // bisa di masukin API
 
+            Modal.success({
+              title: "Berhasil",
+              content: "User berhasil dibuat",
+            });
+
             setOpenUserModal(false);
             form.resetFields();
           }}>
@@ -513,6 +518,12 @@ const Profile = () => {
             console.log("Edit Profile Values:", values);
             // bisa di masukin API
 
+            Modal.success({
+              title: "Berhasil",
+              content: "Profile berhasil diubah",
+            });
+
+            editProfileForm.resetFields();
             setOpenEditProfileModal(false);
           }}
         >
@@ -591,6 +602,12 @@ const Profile = () => {
           onFinish={(values) => {
             console.log(values);
 
+            Modal.success({
+              title: "Berhasil",
+              content: "Password berhasil diubah",
+            })
+
+            changePasswordForm.resetFields()
             setOpenChangePasswordModal(false);
           }}
         >

@@ -12,7 +12,7 @@ import {
 } from "@ant-design/icons";
 
 import { Input, Button, message } from 'antd';
-import "../styles/AppLayout.css";
+import "../Styles/AppLayout.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
