@@ -21,19 +21,22 @@ import {
 import { useMemo, useState } from "react";
 // import Item from "antd/es/list/Item";
 import "../Styles/Pos.css";
+import { useForm } from "antd/es/form/Form";
 
 // Dummy Data
 const productsData = [
     {
-    code: "PRD001",
-    name: "Kayu Jati Premium",
-    category: "Kayu",
-    price_sell: 2500000,
-    price_promo: 2200000,
-    qty: 120,
-    status: 1,
+      id: 1,
+      code: "PRD001",
+      name: "Kayu Jati Premium",
+      category: "Kayu",
+      price_sell: 2500000,
+      price_promo: 2200000,
+      qty: 120,
+      status: 1,
   },
   {
+    id: 2,
     code: "PRD002",
     name: "Pintu Minimalis",
     category: "Pintu",
@@ -43,6 +46,7 @@ const productsData = [
     status: 1,
   },
   {
+    id: 3,
     code: "PRD003",
     name: "Kusen Jendela",
     category: "Kusen",
@@ -66,6 +70,7 @@ const Transactions = () => {
     const [cart, setCart] = useState([]);
     const [openModal, setOpenModal] = useState(false);
     const [openCustomModal, setOpenCustomModal] = useState(false);
+    const [detailTransactionForm] = Form.useForm();
 
     const [customForm, setCustomForm] = useState({
       name: "",
@@ -195,7 +200,7 @@ const Transactions = () => {
               const price = product.price_promo > 0 ? product.price_promo : product.price_sell;
 
               return (
-                <Card>
+                <Card key={product.code}>
                   <div className="product-card" onClick={() => addToCart(product)}>
 
                     <div className="product-top">
@@ -321,15 +326,67 @@ const Transactions = () => {
           open={openModal}
           title="Detail Transaksi"
           footer={null}
-          onCancel={() => setOpenModal(false)}
+          onCancel={() => {
+            setOpenModal(false);
+            detailTransactionForm.resetFields();
+          }}
+          centered
         >
 
-          <Form layout="vertical">
-              <Form.Item label="Nama Customer">
+          <Form
+            form={detailTransactionForm}
+            layout="vertical"
+            onFinish={(values) => {
+              console.log(values)
+              const payload = {
+                ...values,
+                tax,
+                total,
+                items: cart.map((item) => ({
+                  product_id: item.id,
+                  qty: item.qty,
+                  price:
+                    item.price_promo > 0
+                      ? item.price_promo
+                      : item.price_sell,
+                }))
+              }
+              console.log("payload: ", payload)
+              // Bisa masukin API di sini
+
+              detailTransactionForm.resetFields()
+              setCart([])
+              setOpenModal(false)
+              
+              Modal.success({
+                title: "Berhasil",
+                content: "Transaksi berhasil dibuat",
+              });
+            }}
+          >
+              <Form.Item
+                label="Nama Customer"
+                name="customer_name"
+                rules={[
+                  {
+                    required: true,
+                    message: "Nama customer wajib diisi",
+                  }
+                ]}
+              >
                 <Input placeholder="Masukkan nama customer" />
               </Form.Item>
 
-              <Form.Item label="Metode Pembayaran">
+              <Form.Item
+                label="Metode Pembayaran"
+                name="payment_method"
+                rules={[
+                  {
+                    required: true,
+                    message: "Metode pembayaran wajib diisi",
+                  }
+                ]}
+              >
                 <Select placeholder="Pilih metode"
                   options={[
                     { label: "Cash", value: "cash" },
@@ -340,20 +397,46 @@ const Transactions = () => {
                 />
               </Form.Item>
 
-              <Form.Item label="Tanggal">
+              <Form.Item
+                label="Tanggal"
+                name="transaction_date"
+                rules={[
+                  {
+                    required: true,
+                    message: "Tanggal wajib diisi",
+                  }
+                ]}
+              >
                 <DatePicker
                   format="DD/MM/YY"
                   style={{ width: "100%" }}
                 />
               </Form.Item>
 
-              <Form.Item label="Catatan">
+              <Form.Item
+                label="Catatan"
+                name="notes"
+              >
                 <Input.TextArea placeholder="Masukkan catatan (opsional)" />
               </Form.Item>
 
-              <Button type="primary" block>
-                Add Now · {formatIDR(total)}
-              </Button>
+              <div className="modal-footer">
+                <Button
+                  onClick={() => {
+                    detailTransactionForm.resetFields();
+                    setOpenModal(false);
+                  }}
+                >
+                  Cancel
+                </Button>
+
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                >
+                  Add Now · {formatIDR(total)}
+                </Button>
+              </div>
           </Form>
 
         </Modal>
