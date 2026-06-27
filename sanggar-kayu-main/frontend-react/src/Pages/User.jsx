@@ -421,10 +421,17 @@ const Profile = () => {
             console.log("Form Values:", values);
             // bisa di masukin API
 
+            // klo berhasil
             Modal.success({
               title: "Berhasil",
               content: "User berhasil dibuat",
             });
+
+            // klo gagal
+            // Modal.error({
+            //   title: "Gagal",
+            //   content: "User gagal dibuat, coba ulang kembali",
+            // })
 
             setOpenUserModal(false);
             form.resetFields();
@@ -518,10 +525,17 @@ const Profile = () => {
             console.log("Edit Profile Values:", values);
             // bisa di masukin API
 
+            // klo berhasil
             Modal.success({
               title: "Berhasil",
               content: "Profile berhasil diubah",
             });
+
+            // klo gagal
+            // Modal.error({
+            //   title: "Gagal",
+            //   content: "Profile gagal diubah, coba ulang kembali",
+            // })
 
             editProfileForm.resetFields();
             setOpenEditProfileModal(false);
@@ -602,10 +616,17 @@ const Profile = () => {
           onFinish={(values) => {
             console.log(values);
 
+            // klo berhasil
             Modal.success({
               title: "Berhasil",
               content: "Password berhasil diubah",
             })
+
+            // klo gagal
+            // Modal.error({
+            //   title: "Gagal",
+            //   content: "Password gagal diubah, coba ulang kembali",
+            // })
 
             changePasswordForm.resetFields()
             setOpenChangePasswordModal(false);

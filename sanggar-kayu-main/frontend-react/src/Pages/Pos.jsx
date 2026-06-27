@@ -358,10 +358,17 @@ const Transactions = () => {
               setCart([])
               setOpenModal(false)
               
+              // klo berhasil
               Modal.success({
                 title: "Berhasil",
                 content: "Transaksi berhasil dibuat",
               });
+
+              // klo gagal
+              // Modal.error({
+              //   title: "Gagal",
+              //   content: "Transaksi gagal ditambahkan, coba ulang kembali",
+              // })
             }}
           >
               <Form.Item

@@ -404,6 +404,7 @@ const Products = () => {
                     {
                         setOpenModal(false);
                         form.resetFields();
+                        setEditingProduct(null);
                     }
                 }
             >
@@ -430,8 +431,26 @@ const Products = () => {
                             console.log("ADD PRODUCT");
                         }
 
+                        // klo berhasil
+                        Modal.success({
+                            title: "Berhasil",
+                            content: editingProduct != null
+                            ? "Produk berhasil diubah"
+                            : "Produk berhasil ditambahkan",
+                        });
+
+                        
+                        // klo gagal
+                        // Modal.error({
+                        //       title: "Gagal",
+                        //       content: editingProduct != null
+                        //       ? "Produk gagal diubah, coba kembali"
+                        //       : "Produk gagal ditambahkan, coba kembali",
+                        // })
+
                         setOpenModal(false);
                         form.resetFields();
+                        setEditingProduct(null);
                     }}
                 >
                         <div className="form-grid">
