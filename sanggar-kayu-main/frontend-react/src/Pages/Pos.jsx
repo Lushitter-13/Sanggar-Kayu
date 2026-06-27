@@ -21,7 +21,7 @@ import {
 import { useMemo, useState } from "react";
 // import Item from "antd/es/list/Item";
 import "../Styles/Pos.css";
-import { useForm } from "antd/es/form/Form";
+// import { useForm } from "antd/es/form/Form";
 
 // Dummy Data
 const productsData = [
