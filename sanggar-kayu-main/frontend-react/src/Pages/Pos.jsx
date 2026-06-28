@@ -10,6 +10,8 @@ import {
   InputNumber,
 } from "antd";
 
+import dayjs from "dayjs";
+
 import {
   PlusOutlined,
   MinusOutlined,
@@ -407,6 +409,7 @@ const Transactions = () => {
               <Form.Item
                 label="Tanggal"
                 name="transaction_date"
+                initialValue={dayjs()}
                 rules={[
                   {
                     required: true,
