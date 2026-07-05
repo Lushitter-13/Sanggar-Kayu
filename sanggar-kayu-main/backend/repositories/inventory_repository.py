@@ -3,7 +3,13 @@ import pymysql
 
 # PRODUCTS
 def get_products(product_id=None, product_code=None, product_name=None):
-    query = "SELECT * FROM products WHERE 1=1"
+    query = """
+        SELECT p.*, c.name as category
+        FROM product p
+        LEFT JOIN product_category c
+        ON p.category_id = c.id
+        WHERE 1=1
+    """
     params = []
     
     if product_id is not None:
@@ -53,6 +59,24 @@ def update_product(product_id, product_code, product_name, category_id, qty, pri
         print(e)
         return False
     
+def update_product_stock(product_id, qty):
+    try:
+        sql = """
+        UPDATE product
+        SET qty = %s
+        WHERE id = %s
+        """
+
+        affected_rows = cursor.execute(sql, (qty, product_id))
+        conn.commit()
+
+        return affected_rows
+
+    except Exception as e:
+        conn.rollback()
+        print(e)
+        return False
+    
 def delete_product(product_id):
     try:
         sql = "DELETE FROM product WHERE id = %s"
@@ -64,7 +88,23 @@ def delete_product(product_id):
         conn.rollback()
         print(e)
         return False
+
+# CATEGORIES
+def get_categories(category_id=None, category_name=None):
+    query = "SELECT * FROM product_category WHERE 1=1"
+    params = []
     
+    if category_id is not None:
+        query += " AND id = %s"
+        params.append(category_id)
+
+    if category_name is not None:
+        query += " AND name = %s"
+        params.append(category_name)
+
+    cursor.execute(query, params)
+    return cursor.fetchall()
+
 # TRANSACTIONS
 def get_transactions(id=None, transaction_number=None, customer_name=None):
     query = "SELECT * FROM transaction WHERE 1=1"

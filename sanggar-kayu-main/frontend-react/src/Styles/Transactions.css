@@ -106,8 +106,8 @@
 /* STATUS */
 
 .ant-tag.status-paid {
-  background: #52c41a !important;
-  color: #fff !important;
+  background: color-mix(in srgb, var(--success) 30%, white) !important;
+  color: var(--text-primary) !important;
   border: none !important;
 
   border-radius: 8px !important;
@@ -115,8 +115,8 @@
 }
 
 .ant-tag.status-pending {
-  background: orange !important;
-  color: white !important;
+  background: color-mix(in srgb, var(--warning) 30%, white) !important;
+  color: var(--text-primary) !important;
   border: none !important;
 
   border-radius: 8px !important;

@@ -260,6 +260,24 @@
   color: var(--text-primary);
 }
 
+.ant-tag.dashboard-status-paid {
+  background: color-mix(in srgb, var(--success) 30%, white) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid color-mix(in srgb, var(--success) 60%, white);
+
+  border-radius: 8px !important;
+  padding: 2px 10px !important;
+}
+
+.ant-tag.dashboard-status-pending {
+  background: color-mix(in srgb, var(--warning) 30%, white) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid color-mix(in srgb, var(--warning) 60%, white);
+
+  border-radius: 8px !important;
+  padding: 2px 10px !important;
+}
+
 /* =========================
    LOW STOCK
 ========================= */
@@ -326,7 +344,7 @@
 
   text-align: center;
 
-  color: var(--text-white) !important;
+  color: var(--text-white);
 
   font-size: 13px;
   font-weight: 700;
@@ -339,11 +357,21 @@
 }
 
 .stock-tag.warning {
-  background: var(--warning) !important;
+  background: color-mix(in srgb, var(--warning) 30%, white);
+  color: var(--text-primary);
+  border: 1px solid color-mix(in srgb, var(--warning) 60%, white);
+
+  border-radius: 8px !important;
+  padding: 2px 10px !important;
 }
 
 .stock-tag.danger {
-  background: var(--danger) !important;
+  background: color-mix(in srgb, var(--danger) 30%, white);
+  color: var(--text-primary);
+  border: 1px solid color-mix(in srgb, var(--danger) 60%, white);
+
+  border-radius: 8px !important;
+  padding: 2px 10px !important;
 }
 
 /* =========================

@@ -178,11 +178,11 @@ const Dashboard = () => {
                     {formatIDR(transaction.total)}
                   </p>
                   <Tag
-                  color={
-                    transaction.status === "Paid"
-                    ? "green"
-                    : "orange"
-                  }
+                    className={
+                      transaction.status === "Paid"
+                      ? "dashboard-status-paid"
+                      : "dashboard-status-pending"
+                    }
                   >
                     {transaction.status}
                   </Tag>

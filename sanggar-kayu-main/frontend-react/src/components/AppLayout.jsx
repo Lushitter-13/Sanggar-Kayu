@@ -1,7 +1,7 @@
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   DashboardOutlined,
-  AppstoreOutlined,
+//   AppstoreOutlined,
   ShoppingCartOutlined,
   FileTextOutlined,
   DatabaseOutlined,
@@ -13,6 +13,7 @@ import {
 
 import { Input, Button, message } from 'antd';
 import "../Styles/AppLayout.css";
+import logo from "../assets/logo.png";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -97,7 +98,10 @@ const AppLayout = () => {
                 {/* Logo */}
                 <div className="sidebar-logo">
                     <div className="sidebar-logo-icon">
-                        <AppstoreOutlined size={20} />
+                        <img
+                            src={logo}
+                            alt="Logo"
+                            className="sidebar-logo-image" />
                     </div>
 
                     <div>
@@ -140,7 +144,7 @@ const AppLayout = () => {
 
                     <div className="user-info">
                         <p className='user-greeting'>Welcome,</p>
-                        <p className='user-name'>{user?.name || "Admin"}</p>
+                        <p className='user-name-sidebar'>{user?.name || "Admin"}</p>
                     </div>
 
                     <Link
