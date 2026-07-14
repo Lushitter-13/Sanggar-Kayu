@@ -152,3 +152,35 @@
   }
 
 }
+
+.transaction-detail-header{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:20px;
+}
+
+.transaction-detail-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:16px;
+}
+
+.transaction-detail-grid label,
+.transaction-detail-header label{
+    display:block;
+    font-size:12px;
+    color:var(--text-secondary);
+    margin-bottom:4px;
+}
+
+.transaction-detail-grid p,
+.transaction-detail-header p{
+    margin:0;
+    font-weight:600;
+}
+
+.transaction-total{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}

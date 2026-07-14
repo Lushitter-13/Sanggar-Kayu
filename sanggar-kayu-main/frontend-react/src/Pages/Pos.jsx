@@ -361,9 +361,20 @@ const Transactions = () => {
               setOpenModal(false)
               
               // klo berhasil
-              Modal.success({
-                title: "Berhasil",
-                content: "Transaksi berhasil dibuat",
+              Modal.confirm({
+                title: "Transaksi Berhasil",
+                content: "Apakah anda ingin mencetak struk transaksi?",
+                okText: "Print Struk",
+                cancelText: "Lewati",
+
+                onOk: () => {
+                  // redirect ke halaman print struk
+                  console.log("Struk berhasil dicetak")
+                },
+
+                onCancel: () => {
+                  console.log("Lewati print struk")
+                },
               });
 
               // klo gagal

@@ -245,22 +245,6 @@ def add_transaction(
             "message": str(e),
         }
     
-def updateStock(id, qty):
-    try:
-        sql = """
-        UPDATE product
-        SET qty = %s
-        WHERE id = %s
-        """
-        affected_rows = cursor.execute(sql, (qty, id))
-        conn.commit()
-        return affected_rows
-
-    except Exception as e:
-        conn.rollback()
-        print(e)
-        return False
-    
 # User
 def get_users(user_id=None, username=None, role=None):
     query = "SELECT * FROM user WHERE 1=1"
