@@ -21,27 +21,32 @@ const nav = [
     {
         path: "/dashboard",
         label: "Dashboard",
-        icon: DashboardOutlined
+        icon: DashboardOutlined,
+        roles: [1, 2]
     },
     {
         path: "/products",
         label: "Products",
-        icon: ShoppingCartOutlined
+        icon: ShoppingCartOutlined,
+        roles: [1, 2]
     },
     {
         path: "/Pos",
         label: "POS",
-        icon: FileTextOutlined
+        icon: FileTextOutlined,
+        roles: [1, 2, 3]
     },
     {
         path: "/transactions",
         label: "Transactions",
-        icon: DatabaseOutlined
+        icon: DatabaseOutlined,
+        roles: [1, 2]
     },
     {
         path: "/user",
         label: "User",
-        icon: UserOutlined
+        icon: UserOutlined,
+        roles: [1]
     }
 ];
 
@@ -49,6 +54,10 @@ const AppLayout = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const user = JSON.parse(localStorage.getItem("user"));
+
+    const filteredNav = nav.filter((item) =>
+        item.roles.includes(user?.role)
+    );
 
     const handleLogout = async () => {
         try {
@@ -113,7 +122,7 @@ const AppLayout = () => {
                 {/* Menu */}
                 <nav className="sidebar-nav">
 
-                    {nav.map((item) => {
+                    {filteredNav.map((item) => {
                        const isActive = location.pathname === item.path;
                        const Icon = item.icon;
                        

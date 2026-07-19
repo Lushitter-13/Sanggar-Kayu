@@ -107,7 +107,14 @@ def get_categories(category_id=None, category_name=None):
 
 # TRANSACTIONS
 def get_transactions(id=None, transaction_number=None, customer_name=None):
-    query = "SELECT * FROM transaction WHERE 1=1"
+    query = """SELECT
+    t.*, td.product_id, p.name AS product_name, td.qty, td.price, td.total AS detail_total, pm.payment_method_name AS payment_method, u.name AS cashier_name
+    FROM transaction t
+    LEFT JOIN transaction_detail td ON t.id = td.transaction_id
+    LEFT JOIN product p ON td.product_id = p.id
+    LEFT JOIN payment_method pm ON t.payment_method_id = pm.id
+    LEFT JOIN user u ON t.user_id = u.id
+    WHERE 1=1"""
     params = []
     
     if id is not None:
@@ -115,7 +122,7 @@ def get_transactions(id=None, transaction_number=None, customer_name=None):
         params.append(id)
         
     if transaction_number is not None:
-        query += " AND number = %s"
+        query += " AND transaction_number = %s"
         params.append(transaction_number)
 
     if customer_name is not None:
@@ -124,7 +131,35 @@ def get_transactions(id=None, transaction_number=None, customer_name=None):
 
     cursor.execute(query, params)
 
-    return cursor.fetchall()
+    rows = cursor.fetchall()
+    
+    transactions = {}
+    
+    for row in rows:
+        transaction_id = row["id"]
+        
+        if transaction_id not in transactions:
+            transactions[transaction_id] = {
+                "id": transaction_id,
+                "transaction_number": row["transaction_number"],
+                "cashier_name": row["cashier_name"],
+                "customer_name": row["customer_name"],
+                "payment_method": row["payment_method"],
+                "total_price": row["total"],
+                "transaction_date": row["date"],
+                "notes": row["notes"],
+                "details": []
+            }
+        
+        transactions[transaction_id]["details"].append({
+            "product_id": row["product_id"],
+            "product_name": row["product_name"],
+            "qty": row["qty"],
+            "price": row["price"],
+            "total": row["detail_total"]
+        })
+    
+    return list(transactions.values())
 
 def add_transaction(
     transaction_number,

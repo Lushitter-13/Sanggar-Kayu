@@ -5,6 +5,7 @@ from repositories.inventory_repository import (
     add_product,
     update_product,
     update_product_stock,
+    get_transactions
 )
 
 router = APIRouter()
@@ -96,10 +97,14 @@ def update_product_stock_endpoint(product_id: int, data: dict):
         "message": "Product stock updated"
     }
 
-# @router.post("/products")
-# def create_product(data: dict):
-#     add_product(data["name"], data["price"])
-
-#     return {
-#         "message": "Product added"
-#     }
+@router.get("/get_transactions")
+def transactions(
+    id: int | None = None,
+    transaction_number: str | None = None,
+    customer_name: str | None = None
+):
+    return get_transactions(
+        id=id,
+        transaction_number=transaction_number,
+        customer_name=customer_name
+    )
