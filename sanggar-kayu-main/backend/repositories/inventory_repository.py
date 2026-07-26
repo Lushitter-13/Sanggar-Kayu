@@ -282,7 +282,10 @@ def add_transaction(
     
 # User
 def get_users(user_id=None, username=None, role=None):
-    query = "SELECT * FROM user WHERE 1=1"
+    query = """SELECT u.*, r.role_name as role_name
+    FROM user u
+    LEFT JOIN role r ON u.role = r.id
+    WHERE 1=1"""
     params = []
     
     if user_id is not None:
@@ -307,30 +310,36 @@ def add_user(name, username, password, role, is_active=True):
     VALUES(%s, %s, %s, %s, %s)
     """
 
-    cursor.execute(sql, (name, username, password, role, is_active))
+    affected_rows = cursor.execute(sql, (name, username, password, role, is_active))
     conn.commit()
     
+    return affected_rows
+    
 # Profile
-def edit_profile(user_id, name=None, username=None, password=None, role=None):
+def edit_user(user_id, name=None, username=None, password=None, role=None, is_active=None):
     try:
         fields = []
         values = []
 
-        if name is not None:
+        if name:
             fields.append("name = %s")
             values.append(name)
 
-        if username is not None:
+        if username:
             fields.append("username = %s")
             values.append(username)
 
-        if password is not None:
+        if password:
             fields.append("password = %s")
             values.append(password)
 
-        if role is not None:
+        if role:
             fields.append("role = %s")
             values.append(role)
+            
+        if is_active:
+            fields.append("is_active = %s")
+            values.append(is_active)
 
         if not fields:
             return False
