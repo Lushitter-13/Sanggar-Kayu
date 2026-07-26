@@ -7,7 +7,7 @@
   /* =========================
      BACKGROUND
   ========================= */
-  --background: #fdfbf7;
+  --background-primary: #FDFBF7;
   --background-secondary: #fafafa;
   --background-card: #ffffff;
   --background-sidebar: #2d1b12;
@@ -19,6 +19,7 @@
   --text-secondary: #777777;
   --text-muted: #999999;
   --text-white: #ffffff;
+  --text-danger: #ff4d4f;
 
   /* =========================
      PRIMARY COLOR
@@ -27,6 +28,14 @@
   --primary-hover: #5f3b28;
   --primary-light: #d6b08c;
   --primary-foreground: #ffffff;
+
+  /* =========================
+      SECONDARY COLOR
+   ========================= */
+   --secondary: #ffffff;
+   --secondary-hover: #f7f0eb;
+   --secondary-foreground: #291508;
+   --secondary-border: #d9d9d9;
 
   /* =========================
      STATUS COLOR

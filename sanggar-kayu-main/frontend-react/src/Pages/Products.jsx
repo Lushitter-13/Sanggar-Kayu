@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   Button,
@@ -21,84 +21,85 @@ import {
 
 import "../Styles/Products.css";
 
-// Dummy Data
+const API_URL = import.meta.env.VITE_API_URL;
 
-const initialProducts = [
-  {
-    id: 1,
-    code: "PRD001",
-    name: "Kayu Jati Premium",
-    category: "Kayu",
-    price_sell: 2500000,
-    price_promo: 2200000,
-    qty: 120,
-    unit: "pcs",
-    status: 1,
-  },
-  {
-    id: 2,
-    code: "PRD002",
-    name: "Pintu Minimalis",
-    category: "Pintu",
-    price_sell: 1800000,
-    price_promo: 1500000,
-    qty: 15,
-    unit: "pcs",
-    status: 1,
-  },
-  {
-    id: 3,
-    code: "PRD003",
-    name: "Kusen Jendela",
-    category: "Kusen",
-    price_sell: 850000,
-    price_promo: 0,
-    qty: 0,
-    unit: "pcs",
-    status: 0,
-  },
-  {
-    id: 4,
-    code: "PRD004",
-    name: "Handle Pintu",
-    category: "Perintilan",
-    price_sell: 75000,
-    price_promo: 65000,
-    qty: 8,
-    unit: "pcs",
-    status: 1,
-  },
-  {
-    id: 5,
-    code: "PRD005",
-    name: "Meja Kayu Jati",
-    category: "Kayu",
-    price_sell: 1250000,
-    price_promo: 1100000,
-    qty: 25,
-    unit: "pcs",
-    status: 1,
-  },
-  {
-    id: 6,
-    code: "PRD006",
-    name: "Kursi Kayu Jati",
-    category: "Kayu",
-    price_sell: 800000,
-    price_promo: 700000,
-    qty: 7,
-    unit: "pcs",
-    status: 0,
-  },
-]
+// Dummy Data
+// const initialProducts = [
+//   {
+//     id: 1,
+//     code: "PRD001",
+//     name: "Kayu Jati Premium",
+//     category: "Meja",
+//     price_sell: 2500000,
+//     price_promo: 2200000,
+//     qty: 120,
+//     unit: "pcs",
+//     status: 1,
+//   },
+//   {
+//     id: 2,
+//     code: "PRD002",
+//     name: "Pintu Minimalis",
+//     category: "Kursi",
+//     price_sell: 1800000,
+//     price_promo: 1500000,
+//     qty: 15,
+//     unit: "pcs",
+//     status: 1,
+//   },
+//   {
+//     id: 3,
+//     code: "PRD003",
+//     name: "Kusen Jendela",
+//     category: "Lemari",
+//     price_sell: 850000,
+//     price_promo: 0,
+//     qty: 0,
+//     unit: "pcs",
+//     status: 0,
+//   },
+//   {
+//     id: 4,
+//     code: "PRD004",
+//     name: "Handle Pintu",
+//     category: "Rak",
+//     price_sell: 75000,
+//     price_promo: 65000,
+//     qty: 8,
+//     unit: "pcs",
+//     status: 1,
+//   },
+//   {
+//     id: 5,
+//     code: "PRD005",
+//     name: "Meja Kayu Jati",
+//     category: "Custom",
+//     price_sell: 1250000,
+//     price_promo: 1100000,
+//     qty: 25,
+//     unit: "pcs",
+//     status: 1,
+//   },
+//   {
+//     id: 6,
+//     code: "PRD006",
+//     name: "Kursi Kayu Jati",
+//     category: "Custom",
+//     price_sell: 800000,
+//     price_promo: 700000,
+//     qty: 7,
+//     unit: "pcs",
+//     status: 0,
+//   },
+// ]
 
 const categories = [
   "All",
-  "Kayu",
-  "Kusen",
-  "Pintu",
-  "Jendela",
-  "Perintilan",
+  "Meja",
+  "Kursi",
+  "Lemari",
+  "Rak",
+  "Custom",
 ];
 
 // Format Rupiah
@@ -139,7 +140,8 @@ const getStockStatus = (product) => {
 }
 
 const Products = () => {
-    const [products] = useState(initialProducts);
+    // const [products] = useState(initialProducts);
+    const [products, setProducts] = useState([]);
 
     const [search, setSearch] = useState("");
     const [category, setCategory] = useState("All");
@@ -148,7 +150,7 @@ const Products = () => {
     const [editingProduct, setEditingProduct] = useState(null);
 
     const [form] = Form.useForm();
-    
+
     const handleAdd = () => {
         setEditingProduct(null);
 
@@ -184,6 +186,7 @@ const Products = () => {
     // Edit Stock
     const [stockModalOpen, setStockModalOpen] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState(null);
+    const [reload, setReload] = useState(false);
     const [stockQty, setStockQty] = useState(0);
     const handleStock = (product) => {
         setSelectedProduct(product);
@@ -197,8 +200,42 @@ const Products = () => {
             product: selectedProduct,
             qty: stockQty,
         });
+        // Input ke API untuk update stock
 
         setStockModalOpen(false);
+        setReload(prev => !prev)
+    };
+
+    const handleAddProduct = async (values) => {
+        try {
+            console.log("Form Values:", values);
+            if (editingProduct) {
+                console.log("EDIT PRODUCT");
+            } else {
+                console.log("ADD PRODUCT");
+            }
+
+            Modal.success({
+                title: "Berhasil",
+                content: editingProduct
+                    ? "Produk berhasil diubah"
+                    : "Produk berhasil ditambahkan",
+            });
+
+            setOpenModal(false);
+            form.resetFields();
+            setEditingProduct(null);
+            setReload(prev => !prev);
+
+        } catch (err) {
+            Modal.error({
+                title: "Gagal",
+                content: editingProduct
+                    ? "Produk gagal diubah, coba kembali"
+                    : "Produk gagal ditambahkan, coba kembali",
+            });
+            console.log("Error adding/editing product:", err);
+        }
     };
 
     const columns = [
@@ -319,6 +356,17 @@ const Products = () => {
         },
     ];
 
+    useEffect(() => {
+        // To fetch product's data from API
+        (async () => {
+            const response = await fetch(`${API_URL}/get_products`);
+            const data = await response.json();
+
+            setProducts(data);
+            console.log("Fetched products:", data);
+        })();
+    }, [reload]);
+
     return (
         <div className="products-container">
 
@@ -404,6 +452,7 @@ const Products = () => {
                     {
                         setOpenModal(false);
                         form.resetFields();
+                        setEditingProduct(null);
                     }
                 }
             >
@@ -422,16 +471,36 @@ const Products = () => {
                         description: editingProduct?.description || "",
                     }}
                     onFinish={(values) => {
-                        console.log(values);
+                        // console.log(values);
 
-                        if (editingProduct) {
-                            console.log("EDIT PRODUCT");
-                        } else {
-                            console.log("ADD PRODUCT");
-                        }
+                        // if (editingProduct) {
+                        //     console.log("EDIT PRODUCT");
+                        // } else {
+                        //     console.log("ADD PRODUCT");
+                        // }
 
-                        setOpenModal(false);
-                        form.resetFields();
+                        // // klo berhasil
+                        // Modal.success({
+                        //     title: "Berhasil",
+                        //     content: editingProduct != null
+                        //     ? "Produk berhasil diubah"
+                        //     : "Produk berhasil ditambahkan",
+                        // });
+
+                        
+                        // // klo gagal
+                        // // Modal.error({
+                        // //       title: "Gagal",
+                        // //       content: editingProduct != null
+                        // //       ? "Produk gagal diubah, coba kembali"
+                        // //       : "Produk gagal ditambahkan, coba kembali",
+                        // // })
+
+                        // setOpenModal(false);
+                        // form.resetFields();
+                        // setEditingProduct(null);
+                        // setReload(prev => !prev)
+                        handleAddProduct(values);
                     }}
                 >
                         <div className="form-grid">
@@ -584,49 +653,61 @@ const Products = () => {
             </Modal>
 
             <Modal
-                open={stockModalOpen}
                 title={`Adjust Stock - ${selectedProduct?.name}`}
+                open={stockModalOpen}
                 onCancel={() => setStockModalOpen(false)}
                 footer={null}
+                centered
+            >
+                <Form
+                    layout="vertical"
+                    onFinish={handleSaveStock}
                 >
-                <div className="stock-adjust-wrapper">
+                    <Form.Item label="Jumlah Stok">
 
-                    <div className="stock-adjust-control">
+                        <div className="stock-adjust-control">
 
-                    <Button
-                        onClick={() =>
-                        setStockQty((prev) =>
-                            prev > 0 ? prev - 1 : 0
-                        )
-                        }
-                    >
-                        -
-                    </Button>
+                            <Button
+                                onClick={() =>
+                                    setStockQty((prev) =>
+                                        prev > 0 ? prev - 1 : 0
+                                    )
+                                }
+                            >
+                                -
+                            </Button>
 
-                    <span className="stock-value">
-                        {stockQty}
-                    </span>
+                            <span className="stock-value">
+                                {stockQty}
+                            </span>
 
-                    <Button
-                        onClick={() =>
-                        setStockQty((prev) => prev + 1)
-                        }
-                    >
-                        +
-                    </Button>
+                            <Button
+                                onClick={() =>
+                                    setStockQty((prev) => prev + 1)
+                                }
+                            >
+                                +
+                            </Button>
 
+                        </div>
+
+                    </Form.Item>
+
+                    <div className="modal-footer">
+                        <Button
+                            onClick={() => setStockModalOpen(false)}
+                        >
+                            Cancel
+                        </Button>
+
+                        <Button
+                            type="primary"
+                            htmlType="submit"
+                        >
+                            Save Changes
+                        </Button>
                     </div>
-
-                    <Button
-                    type="primary"
-                    block
-                    style={{ marginTop: 20 }}
-                    onClick={handleSaveStock}
-                    >
-                    Save
-                    </Button>
-
-                </div>
+                </Form>
             </Modal>
         </div>
     )

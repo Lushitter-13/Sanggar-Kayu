@@ -7,7 +7,10 @@ import {
   Form,
   Select,
   DatePicker,
+  InputNumber,
 } from "antd";
+
+import dayjs from "dayjs";
 
 import {
   PlusOutlined,
@@ -20,19 +23,22 @@ import {
 import { useMemo, useState } from "react";
 // import Item from "antd/es/list/Item";
 import "../Styles/Pos.css";
+// import { useForm } from "antd/es/form/Form";
 
 // Dummy Data
 const productsData = [
     {
-    code: "PRD001",
-    name: "Kayu Jati Premium",
-    category: "Kayu",
-    price_sell: 2500000,
-    price_promo: 2200000,
-    qty: 120,
-    status: 1,
+      id: 1,
+      code: "PRD001",
+      name: "Kayu Jati Premium",
+      category: "Kayu",
+      price_sell: 2500000,
+      price_promo: 2200000,
+      qty: 120,
+      status: 1,
   },
   {
+    id: 2,
     code: "PRD002",
     name: "Pintu Minimalis",
     category: "Pintu",
@@ -42,6 +48,7 @@ const productsData = [
     status: 1,
   },
   {
+    id: 3,
     code: "PRD003",
     name: "Kusen Jendela",
     category: "Kusen",
@@ -64,6 +71,14 @@ const Transactions = () => {
     const [search, setSearch] = useState("");
     const [cart, setCart] = useState([]);
     const [openModal, setOpenModal] = useState(false);
+    const [openCustomModal, setOpenCustomModal] = useState(false);
+    const [detailTransactionForm] = Form.useForm();
+
+    const [customForm, setCustomForm] = useState({
+      name: "",
+      price_sell: "",
+      description: "",
+    });
 
     const filteredProducts = useMemo(() => {
         return productsData.filter((product) => {
@@ -121,6 +136,29 @@ const Transactions = () => {
     
     const total = subtotal + tax;
 
+    const addCustomItem = () => {
+
+      const customItem = {
+        code: `CUST-${Date.now()}`,
+        name: customForm.name,
+        price_sell: parseFloat(customForm.price_sell),
+        price_promo: 0,
+        description: customForm.description.length > 0 ? customForm.description : null,
+        qty: 999,
+        status: 1,
+      }
+
+      addToCart(customItem);
+
+      setCustomForm({
+        name: "",
+        price_sell: "",
+        description: "",
+      });
+
+      setOpenCustomModal(false);
+    }
+
     return (
       <div className="pos-layout">
 
@@ -142,11 +180,29 @@ const Transactions = () => {
           />
 
           <div className="product-grid">
+            <Card
+              className="custom-product-card"
+              onClick={() => setOpenCustomModal(true)}
+            >
+              <div className="custom-product-content">
+                <div className="custom-product-icon">
+                  📦<PlusOutlined />
+                </div>
+
+                <div className="custom-product-title">
+                  Other Item
+                </div>
+
+                <div className="custom-product-subtitle">
+                  Add custom product manually
+                </div>
+              </div>
+            </Card>
             {filteredProducts.map((product) => {
               const price = product.price_promo > 0 ? product.price_promo : product.price_sell;
 
               return (
-                <Card>
+                <Card key={product.code}>
                   <div className="product-card" onClick={() => addToCart(product)}>
 
                     <div className="product-top">
@@ -204,7 +260,7 @@ const Transactions = () => {
 
                       <div className="cart-item-info">
 
-                        <p className="cart-item-name">{item.name}</p>
+                        <p className="cart-item-name">{item.name} {item.is_custom && (<Tag color="gold">Custom</Tag>)}</p>
                         <p className="cart-item-price">{formatIDR(price)}</p>
 
                       </div>
@@ -272,15 +328,85 @@ const Transactions = () => {
           open={openModal}
           title="Detail Transaksi"
           footer={null}
-          onCancel={() => setOpenModal(false)}
+          onCancel={() => {
+            setOpenModal(false);
+            detailTransactionForm.resetFields();
+          }}
+          centered
         >
 
-          <Form layout="vertical">
-              <Form.Item label="Nama Customer">
+          <Form
+            form={detailTransactionForm}
+            layout="vertical"
+            onFinish={(values) => {
+              console.log(values)
+              const payload = {
+                ...values,
+                tax,
+                total,
+                items: cart.map((item) => ({
+                  product_id: item.id,
+                  qty: item.qty,
+                  price:
+                    item.price_promo > 0
+                      ? item.price_promo
+                      : item.price_sell,
+                }))
+              }
+              console.log("payload: ", payload)
+              // Bisa masukin API di sini
+
+              detailTransactionForm.resetFields()
+              setCart([])
+              setOpenModal(false)
+              
+              // klo berhasil
+              Modal.confirm({
+                title: "Transaksi Berhasil",
+                content: "Apakah anda ingin mencetak struk transaksi?",
+                okText: "Print Struk",
+                cancelText: "Lewati",
+
+                onOk: () => {
+                  // redirect ke halaman print struk
+                  console.log("Struk berhasil dicetak")
+                },
+
+                onCancel: () => {
+                  console.log("Lewati print struk")
+                },
+              });
+
+              // klo gagal
+              // Modal.error({
+              //   title: "Gagal",
+              //   content: "Transaksi gagal ditambahkan, coba ulang kembali",
+              // })
+            }}
+          >
+              <Form.Item
+                label="Nama Customer"
+                name="customer_name"
+                rules={[
+                  {
+                    required: true,
+                    message: "Nama customer wajib diisi",
+                  }
+                ]}
+              >
                 <Input placeholder="Masukkan nama customer" />
               </Form.Item>
 
-              <Form.Item label="Metode Pembayaran">
+              <Form.Item
+                label="Metode Pembayaran"
+                name="payment_method"
+                rules={[
+                  {
+                    required: true,
+                    message: "Metode pembayaran wajib diisi",
+                  }
+                ]}
+              >
                 <Select placeholder="Pilih metode"
                   options={[
                     { label: "Cash", value: "cash" },
@@ -291,22 +417,109 @@ const Transactions = () => {
                 />
               </Form.Item>
 
-              <Form.Item label="Tanggal">
+              <Form.Item
+                label="Tanggal"
+                name="transaction_date"
+                initialValue={dayjs()}
+                rules={[
+                  {
+                    required: true,
+                    message: "Tanggal wajib diisi",
+                  }
+                ]}
+              >
                 <DatePicker
                   format="DD/MM/YY"
                   style={{ width: "100%" }}
                 />
               </Form.Item>
 
-              <Form.Item label="Catatan">
+              <Form.Item
+                label="Catatan"
+                name="notes"
+              >
                 <Input.TextArea placeholder="Masukkan catatan (opsional)" />
               </Form.Item>
 
-              <Button type="primary" block>
-                Add Now · {formatIDR(total)}
-              </Button>
+              <div className="modal-footer">
+                <Button
+                  onClick={() => {
+                    detailTransactionForm.resetFields();
+                    setOpenModal(false);
+                  }}
+                >
+                  Cancel
+                </Button>
+
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                >
+                  Add Now · {formatIDR(total)}
+                </Button>
+              </div>
           </Form>
 
+        </Modal>
+
+        <Modal
+          open={openCustomModal}
+          title="Add Custom Item"
+          footer={null}
+          onCancel={() => setOpenCustomModal(false)}
+        >
+          <Form layout="vertical">
+            <Form.Item label="Nama Produk" required>
+              <Input
+                value={customForm.name}
+                onChange={(e) =>
+                  setCustomForm({
+                    ...customForm,
+                    name: e.target.value,
+                  })
+                }
+              />
+            </Form.Item>
+
+            <Form.Item label="Harga" required>
+              <InputNumber
+                style={{ width: "100%" }}
+                value={customForm.price_sell}
+                onChange={(value) =>
+                  setCustomForm({
+                    ...customForm,
+                    price_sell: value,
+                  })
+                }
+              />
+            </Form.Item>
+
+            <Form.Item label="Description">
+              <Input.TextArea
+                rows={3}
+                value={customForm.description}
+                onChange={(e) =>
+                  setCustomForm({
+                    ...customForm,
+                    description: e.target.value,
+                  })
+                }
+              />
+            </Form.Item>
+
+            <Button
+              type="primary"
+              block
+              onClick={addCustomItem}
+              disabled={
+                !customForm.name ||
+                !customForm.price_sell
+              }
+            >
+              Add Item
+            </Button>
+
+          </Form>
         </Modal>
 
       </div>

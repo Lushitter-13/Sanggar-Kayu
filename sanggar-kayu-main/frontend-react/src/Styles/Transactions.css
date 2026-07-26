@@ -1,0 +1,186 @@
+.transactions-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* HEADER */
+
+.transactions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.transactions-title {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 28px;
+  text-align: left;
+}
+
+.transactions-subtitle {
+  color: var(--text-secondary);
+  text-align: left;
+}
+
+/* FILTER */
+
+.filter-card {
+  border-radius: var(--radius-lg);
+}
+
+.transaction-filter {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.transaction-search {
+  flex: 1;
+  min-width: 300px;
+}
+
+.payment-select {
+  width: 180px;
+}
+
+.date-filter {
+  width: 260px;
+}
+
+.export-button {
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+  border-color: var(--secondary-border);
+}
+
+.export-button:hover,
+.export-button:focus {
+  background: var(--secondary-hover) !important;
+  color: var(--primary) !important;
+  border-color: var(--primary) !important;
+}
+
+/* SUMMARY */
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.summary-card {
+  border-radius: var(--radius-lg);
+}
+
+.summary-label {
+  font-size: 12px;
+  color: var(--muted-foreground);
+  margin-bottom: 8px;
+  text-align: left;
+}
+
+.summary-value {
+  font-size: 34px;
+  font-weight: 700;
+  color: var(--foreground);
+  text-align: left;
+}
+
+/* TABLE */
+
+.table-card {
+  border-radius: var(--radius-lg);
+}
+
+/* TAG PAYMENT */
+
+.payment-tag {
+  border-radius: 999px;
+  padding: 2px 12px;
+}
+
+/* STATUS */
+
+.ant-tag.status-paid {
+  background: color-mix(in srgb, var(--success) 30%, white) !important;
+  color: var(--text-primary) !important;
+  border: none !important;
+
+  border-radius: 8px !important;
+  padding: 2px 10px !important;
+}
+
+.ant-tag.status-pending {
+  background: color-mix(in srgb, var(--warning) 30%, white) !important;
+  color: var(--text-primary) !important;
+  border: none !important;
+
+  border-radius: 8px !important;
+  padding: 2px 10px !important;
+}
+
+/* BUTTON */
+
+.export-button.ant-btn-primary {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.export-button.ant-btn-primary:hover {
+  filter: brightness(1.1);
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 768px) {
+
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .transaction-filter {
+    flex-direction: column;
+  }
+
+  .payment-select,
+  .date-filter {
+    width: 100%;
+  }
+
+}
+
+.transaction-detail-header{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:20px;
+}
+
+.transaction-detail-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:16px;
+}
+
+.transaction-detail-grid label,
+.transaction-detail-header label{
+    display:block;
+    font-size:12px;
+    color:var(--text-secondary);
+    margin-bottom:4px;
+}
+
+.transaction-detail-grid p,
+.transaction-detail-header p{
+    margin:0;
+    font-weight:600;
+}
+
+.transaction-total{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
