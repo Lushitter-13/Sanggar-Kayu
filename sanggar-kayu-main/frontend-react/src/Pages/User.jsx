@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, Button, Tag, Table, Form, Modal, Input, Select, Switch } from "antd";
 
 import {
@@ -13,6 +13,8 @@ import {
 } from "@ant-design/icons";
 
 import "../Styles/User.css";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 const user = JSON.parse(localStorage.getItem("user")) || {
   id: 1,
@@ -137,6 +139,7 @@ const permissions = [
 ];
 
 const Profile = () => {
+  const [usersData, setUsersData] = useState([]);
   const [selectedRole, setSelectedRole] = useState(1);
   const [openUserModal, setOpenUserModal] = useState(false);
   const [openEditProfileModal, setOpenEditProfileModal] = useState(false);
@@ -144,6 +147,8 @@ const Profile = () => {
   const [form] = Form.useForm();
   const [editProfileForm] = Form.useForm();
   const [changePasswordForm] = Form.useForm();
+  const [reload, setReload] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   // Bikin inisial nama bwt avatar
   const getInitials = (name) => {
@@ -231,9 +236,16 @@ const Profile = () => {
     {
       title: "Action",
       align: "center",
-      render: () => (
+      render: (_, record) => (
         <div className="table-action">
-          <Button icon={<EditOutlined />} />
+          <Button
+            icon={<EditOutlined />}
+            onClick={() => {
+              setSelectedUser(record);
+              setOpenEditProfileModal(true);
+              form.setFieldsValue(record);
+            }}
+          />
           <Button danger icon={<DeleteOutlined />} />
         </div>
       ),
@@ -269,6 +281,17 @@ const Profile = () => {
         ),
     })),
   ];
+
+  useEffect(() => {
+    // To fetch user's data from API
+        (async () => {
+          const response = await fetch(`${API_URL}/get_users`);
+          const data = await response.json();
+  
+          setUsersData(data);
+          console.log("Fetched users:", data);
+        })();
+    }, [reload]);
 
   return (
     <div className="profile-container">
@@ -388,7 +411,10 @@ const Profile = () => {
 
           <Button type="primary"
             icon={<PlusOutlined />}
-            onClick={() => setOpenUserModal(true)}
+            onClick={() => {
+              form.resetFields();
+              setOpenUserModal(true)
+            }}
           >
             Tambah User
           </Button>
@@ -397,7 +423,7 @@ const Profile = () => {
         <Table
           rowKey="id"
           columns={userColumns}
-          dataSource={users}
+          dataSource={usersData}
           pagination={false}
         />
       </Card>
@@ -406,26 +432,64 @@ const Profile = () => {
       <Modal
         title="Tambah User Baru"
         open={openUserModal}
+        footer={null}
         onCancel={() => {
           setOpenUserModal(false)
           form.resetFields();
         }}
-        onOk={() => form.submit()}
-        okText="Simpan"
         centered
       >
         <Form
           form={form}
           layout="vertical"
-          onFinish={(values) => {
+          onFinish={async (values) => {
             console.log("Form Values:", values);
-            // bisa di masukin API
+
+            try {
+              const response = await fetch(`${API_URL}/add_user`,
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    name: values.name,
+                    username: values.username,
+                    role: values.role,
+                    is_active: values.is_active ? 1 : 0,
+                    password: values.password,
+                  }),
+                }
+              );
+
+              const data = await response.json();
+
+              if (data.success) {
+                Modal.success({
+                  title: "Berhasil",
+                  content: "User berhasil dibuat",
+                })
+              } else {
+                Modal.error({
+                  title: "Gagal",
+                  content: "User gagal dibuat, coba ulang kembali",
+                })
+              }
+            }
+
+            catch (error) {
+              console.error("Error adding user:", error);
+              Modal.error({
+                title: "Gagal",
+                content: "Terjadi kesalahan, coba ulang kembali",
+              })
+            }
 
             // klo berhasil
-            Modal.success({
-              title: "Berhasil",
-              content: "User berhasil dibuat",
-            });
+            // Modal.success({
+            //   title: "Berhasil",
+            //   content: "User berhasil dibuat",
+            // });
 
             // klo gagal
             // Modal.error({
@@ -433,15 +497,16 @@ const Profile = () => {
             //   content: "User gagal dibuat, coba ulang kembali",
             // })
 
-            setOpenUserModal(false);
             form.resetFields();
+            setOpenUserModal(false);
+            setReload(prev => !prev);
           }}>
           <Form.Item
             label="Nama"
             name="name"
             rules={[{ required: true, message: "Nama wajib diisi" }]}
           >
-            <Input />
+            <Input placeholder="Masukkan nama" />
           </Form.Item>
 
           <Form.Item
@@ -449,7 +514,7 @@ const Profile = () => {
             name="username"
             rules={[{ required: true, message: "Username wajib diisi" }]}
           >
-            <Input />
+            <Input placeholder="Masukkan username" />
           </Form.Item>
 
           <Form.Item
@@ -457,7 +522,7 @@ const Profile = () => {
             name="password"
             rules={[{ required: true, message: "Password wajib diisi" }]}
           >
-            <Input.Password />
+            <Input.Password placeholder="Masukkan password" />
           </Form.Item>
 
           <Form.Item
@@ -475,7 +540,7 @@ const Profile = () => {
               })
             ]}
           >
-            <Input.Password />
+            <Input.Password placeholder="Konfirmasi password" />
           </Form.Item>
 
           <Form.Item
@@ -489,6 +554,7 @@ const Profile = () => {
             ]}
           >
             <Select
+              placeholder="Pilih role"
               options={roles.map((role) => ({
                 value: role.id,
                 label: role.label,
@@ -504,16 +570,36 @@ const Profile = () => {
           >
             <Switch />
           </Form.Item>
+
+          <div className="modal-footer">
+            <Button
+                onClick={() => {
+                    form.resetFields();
+                    setOpenUserModal(false);
+                }}
+            >
+                Cancel
+            </Button>
+
+            <Button
+                type="primary"
+                htmlType="submit"
+            >
+                Add User
+            </Button>
+          </div>
         </Form>
       </Modal>
 
       {/* Edit Profile Modal */}
       <Modal
-        title="Edit Profile"
+        title= "Edit Profile"
         open={openEditProfileModal}
-        onCancel={() => 
-          setOpenEditProfileModal(false)
-        }
+        onCancel={() => {
+          editProfileForm.resetFields();
+          setSelectedUser(null);
+          setOpenEditProfileModal(false);
+        }}
         footer= {null}
         centered
       >
@@ -521,24 +607,58 @@ const Profile = () => {
         <Form
           form={editProfileForm}
           layout="vertical"
-          onFinish={(values) => {
-            console.log("Edit Profile Values:", values);
-            // bisa di masukin API
+          initialValues={{
+            name: selectedUser?.name || "",
+            username: selectedUser?.username || "",
+            role: selectedUser?.role || 1,
+            is_active: selectedUser?.is_active === 1,
+          }}
+          onFinish={async (values) => {
+            console.log("Editing user:", selectedUser.id, "with values:", values);
+            try {
+              const response = await fetch(`${API_URL}/update_user/${selectedUser.id}`,
+                {
+                  method: "PATCH",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    name: values.name,
+                    username: values.username,
+                    role: values.role,
+                    is_active: values.is_active ? 1 : 0,
+                    password: values.password,
+                  }),
+                }
+              );
 
-            // klo berhasil
-            Modal.success({
-              title: "Berhasil",
-              content: "Profile berhasil diubah",
-            });
+              const data = await response.json();
 
-            // klo gagal
-            // Modal.error({
-            //   title: "Gagal",
-            //   content: "Profile gagal diubah, coba ulang kembali",
-            // })
+              if (data.success) {
+                Modal.success({
+                  title: "Berhasil",
+                  content: "Profile berhasil diubah",
+                })
+              } else {
+                Modal.error({
+                  title: "Gagal",
+                  content: "Profile gagal diubah, coba ulang kembali",
+                })
+              }
+            }
+
+            catch (error) {
+              console.error("Error updating profile:", error);
+              Modal.error({
+                title: "Gagal",
+                content: "Terjadi kesalahan, coba ulang kembali",
+              })
+            }
 
             editProfileForm.resetFields();
             setOpenEditProfileModal(false);
+            setSelectedUser(null);
+            setReload(prev => !prev);
           }}
         >
 
@@ -550,7 +670,7 @@ const Profile = () => {
               message: "Nama wajib diisi",
             }]}
             >
-              <Input />
+              <Input placeholder="Masukkan nama" />
           </Form.Item>
 
           <Form.Item
@@ -563,7 +683,7 @@ const Profile = () => {
               },
             ]}
           >
-            <Input />
+            <Input placeholder="Masukkan username" />
           </Form.Item>
 
           <Form.Item
@@ -571,11 +691,19 @@ const Profile = () => {
             name="role"
           >
             <Select
+              placeholder="Pilih role"
               options={roles.map((role) => ({
                 value: role.id,
                 label: role.label,
               }))}
             />
+          </Form.Item>
+
+          <Form.Item
+            label="Password Baru"
+            name="password"
+          >
+            <Input.Password placeholder="Masukkan password baru" />
           </Form.Item>
 
           <Form.Item
@@ -587,7 +715,11 @@ const Profile = () => {
           </Form.Item>
 
           <div className="modal-footer">
-              <Button onClick={() => setOpenEditProfileModal(false)}>
+              <Button onClick={() => {
+                setOpenEditProfileModal(false);
+                setSelectedUser(null);
+                editProfileForm.resetFields();
+                }}>
                 Cancel
               </Button>
 
@@ -595,7 +727,7 @@ const Profile = () => {
                 type="primary"
                 htmlType="submit"
               >
-                Save Changes
+                Simpan Perubahan
               </Button>
           </div>
 
@@ -613,23 +745,48 @@ const Profile = () => {
         <Form
           form={changePasswordForm}
           layout="vertical"
-          onFinish={(values) => {
+          onFinish={async (values) => {
             console.log(values);
 
-            // klo berhasil
-            Modal.success({
-              title: "Berhasil",
-              content: "Password berhasil diubah",
-            })
+            try {
+              const response = await fetch(`${API_URL}/update_user/${localStorage.getItem("user_id")}`,
+                {
+                  method: "PATCH",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    password: values.password,
+                  }),
+                }
+              );
 
-            // klo gagal
-            // Modal.error({
-            //   title: "Gagal",
-            //   content: "Password gagal diubah, coba ulang kembali",
-            // })
+              const data = await response.json();
+
+              if (data.success) {
+                Modal.success({
+                  title: "Berhasil",
+                  content: "Password berhasil diubah",
+                })
+              } else {
+                Modal.error({
+                  title: "Gagal",
+                  content: "Password gagal diubah, coba ulang kembali",
+                })
+              }
+            }
+
+            catch (error) {
+              console.error("Error updating password:", error);
+              Modal.error({
+                title: "Gagal",
+                content: "Terjadi kesalahan, coba ulang kembali",
+              })
+            }
 
             changePasswordForm.resetFields()
             setOpenChangePasswordModal(false);
+            setReload(prev => !prev);
           }}
         >
           <Form.Item
