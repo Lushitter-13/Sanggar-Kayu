@@ -263,7 +263,7 @@ const Dashboard = () => {
                   </p>
                   <Tag
                     className={
-                      transaction.status === "Paid"
+                      transaction.status === "paid"
                       ? "dashboard-status-paid"
                       : "dashboard-status-pending"
                     }
