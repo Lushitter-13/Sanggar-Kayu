@@ -20,87 +20,18 @@ import {
 } from "@ant-design/icons";
 
 import "../Styles/Products.css";
+import "../Styles/Page.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-// Dummy Data
-// const initialProducts = [
-//   {
-//     id: 1,
-//     code: "PRD001",
-//     name: "Kayu Jati Premium",
-//     category: "Meja",
-//     price_sell: 2500000,
-//     price_promo: 2200000,
-//     qty: 120,
-//     unit: "pcs",
-//     status: 1,
-//   },
-//   {
-//     id: 2,
-//     code: "PRD002",
-//     name: "Pintu Minimalis",
-//     category: "Kursi",
-//     price_sell: 1800000,
-//     price_promo: 1500000,
-//     qty: 15,
-//     unit: "pcs",
-//     status: 1,
-//   },
-//   {
-//     id: 3,
-//     code: "PRD003",
-//     name: "Kusen Jendela",
-//     category: "Lemari",
-//     price_sell: 850000,
-//     price_promo: 0,
-//     qty: 0,
-//     unit: "pcs",
-//     status: 0,
-//   },
-//   {
-//     id: 4,
-//     code: "PRD004",
-//     name: "Handle Pintu",
-//     category: "Rak",
-//     price_sell: 75000,
-//     price_promo: 65000,
-//     qty: 8,
-//     unit: "pcs",
-//     status: 1,
-//   },
-//   {
-//     id: 5,
-//     code: "PRD005",
-//     name: "Meja Kayu Jati",
-//     category: "Custom",
-//     price_sell: 1250000,
-//     price_promo: 1100000,
-//     qty: 25,
-//     unit: "pcs",
-//     status: 1,
-//   },
-//   {
-//     id: 6,
-//     code: "PRD006",
-//     name: "Kursi Kayu Jati",
-//     category: "Custom",
-//     price_sell: 800000,
-//     price_promo: 700000,
-//     qty: 7,
-//     unit: "pcs",
-//     status: 0,
-//   },
-// ]
-
-const categories = [
-  "All",
-  "Meja",
-  "Kursi",
-  "Lemari",
-  "Rak",
-  "Custom",
-];
+// const categories = [
+//   "All",
+//   "Meja",
+//   "Kursi",
+//   "Lemari",
+//   "Rak",
+//   "Custom",
+// ];
 
 // Format Rupiah
 const formatIDR = (number) => {
@@ -144,7 +75,8 @@ const Products = () => {
     const [products, setProducts] = useState([]);
 
     const [search, setSearch] = useState("");
-    const [category, setCategory] = useState("All");
+    const [categories, setCategories] = useState([])
+    const [category, setCategory] = useState("All"); // Filter Category
 
     const [openModal, setOpenModal] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
@@ -359,11 +291,16 @@ const Products = () => {
     useEffect(() => {
         // To fetch product's data from API
         (async () => {
-            const response = await fetch(`${API_URL}/get_products`);
-            const data = await response.json();
+            const responseProducts = await fetch(`${API_URL}/get_products`);
+            const dataProducts = await responseProducts.json();
 
-            setProducts(data);
-            console.log("Fetched products:", data);
+            setProducts(dataProducts);
+
+            const responseCategories = await fetch(`${API_URL}/get_categories`);
+            const dataCategories = await responseCategories.json();
+
+            setCategories(dataCategories);
+            console.log("Fetched Product: ", dataProducts, "\n Fetched Categories: ", dataCategories);
         })();
     }, [reload]);
 
@@ -371,7 +308,7 @@ const Products = () => {
         <div className="products-container">
 
             {/* Header */}
-            <div className="products-header">
+            <div className="page-header">
                 <div>
 
                     <h1 className="products-title">
@@ -410,18 +347,26 @@ const Products = () => {
 
                     {/* Category */}
                     <div className="category-wrapper">
+                        <Button
+                            type={category === "All"
+                                ?"primary"
+                                :"default"}
+                            onClick={() => setCategory("All")}
+                        >
+                            All
+                        </Button>
                         {categories.map((cat) => (
 
                             <Button
-                                key={cat}
+                                key={cat.name}
                                 type= {
-                                    category === cat
+                                    category === cat.name
                                     ? "primary"
                                     : "default"
                                 }
-                                onClick={() => setCategory(cat)}
+                                onClick={() => setCategory(cat.name)}
                             >
-                                {cat}
+                                {cat.name}
                             </Button>
                         ))}
                     </div>

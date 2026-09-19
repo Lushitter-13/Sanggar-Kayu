@@ -6,11 +6,8 @@ import {
   Modal,
   Form,
   Select,
-  DatePicker,
   InputNumber,
 } from "antd";
-
-import dayjs from "dayjs";
 
 import {
   PlusOutlined,
@@ -20,44 +17,12 @@ import {
   SearchOutlined,
 } from "@ant-design/icons";
 
-import { useMemo, useState } from "react";
-// import Item from "antd/es/list/Item";
+import { useMemo, useState, useEffect } from "react";
 import "../Styles/Pos.css";
-// import { useForm } from "antd/es/form/Form";
+import "../Styles/Page.css";
 
-// Dummy Data
-const productsData = [
-    {
-      id: 1,
-      code: "PRD001",
-      name: "Kayu Jati Premium",
-      category: "Kayu",
-      price_sell: 2500000,
-      price_promo: 2200000,
-      qty: 120,
-      status: 1,
-  },
-  {
-    id: 2,
-    code: "PRD002",
-    name: "Pintu Minimalis",
-    category: "Pintu",
-    price_sell: 1800000,
-    price_promo: 1500000,
-    qty: 15,
-    status: 1,
-  },
-  {
-    id: 3,
-    code: "PRD003",
-    name: "Kusen Jendela",
-    category: "Kusen",
-    price_sell: 850000,
-    price_promo: 0,
-    qty: 0,
-    status: 0,
-  },
-];
+const API_URL = import.meta.env.VITE_API_URL;
+
 
 // Format Rupiah
 const formatIDR = (number) => {
@@ -73,6 +38,9 @@ const Transactions = () => {
     const [openModal, setOpenModal] = useState(false);
     const [openCustomModal, setOpenCustomModal] = useState(false);
     const [detailTransactionForm] = Form.useForm();
+    const [products, setProducts] = useState([]);
+    const [paymentMethods, setPaymentMethods] = useState([]);
+    const [reload, setReload] = useState(false);
 
     const [customForm, setCustomForm] = useState({
       name: "",
@@ -81,18 +49,19 @@ const Transactions = () => {
     });
 
     const filteredProducts = useMemo(() => {
-        return productsData.filter((product) => {
+        // return productsData.filter((product) => {
+        return products.filter((product) => {
 
             const matchSearch = 
             search === "" || product.name.toLowerCase().includes(search.toLowerCase());
-            return matchSearch && product.status === 1;
+            return matchSearch && product.status === "Active" && product.category_id != 5;
 
         });
-    }, [search]);
+    }, [search, products]);
 
     const addToCart = (product) => {
         setCart((prev) => {
-            const existing = prev.find((item) => item.code === product.code);
+            const existing = prev.find(item => !item.is_custom && item.code === product.code);
 
             if (existing) {
                 return prev.map((item) =>
@@ -136,11 +105,12 @@ const Transactions = () => {
     
     const total = subtotal + tax;
 
-    const addCustomItem = () => {
+    const addCustomItem = async () => {
 
       const customItem = {
         code: `CUST-${Date.now()}`,
         name: customForm.name,
+        category_id: 5,
         price_sell: parseFloat(customForm.price_sell),
         price_promo: 0,
         description: customForm.description.length > 0 ? customForm.description : null,
@@ -155,173 +125,279 @@ const Transactions = () => {
         price_sell: "",
         description: "",
       });
-
       setOpenCustomModal(false);
     }
+
+    const checkOut = async (values) => {
+      console.log("VALUES: ", values)
+      if (cart.length === 0) {
+        Modal.warning ({
+          title: "Cart kosong",
+          content: "Tambahkan produk terlebih dahulu.",
+        })
+        return
+      }
+
+      try {
+        const user_id = JSON.parse(localStorage.getItem("user"))?.id;
+        console.log("Status:", values.payment_status)
+        const response = await fetch(`${API_URL}/checkout`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            customer_name: values.customer_name,
+            user_id: user_id,
+            payment_method: values.payment_method,
+            status: values.payment_status,
+            notes: values.notes,
+
+            subtotal,
+            tax,
+            total_price: total,
+
+            details: cart.map((item) => {
+              const price =
+                item.price_promo > 0
+                  ? item.price_promo
+                  : item.price_sell;
+                  
+              return{
+              product_id: item.id,
+              qty: item.qty,
+              price:
+                item.price_promo > 0
+                  ? item.price_promo
+                  : item.price_sell,
+              total: price * item.qty
+            }}),
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          Modal.error({
+            title: "Checkout gagal",
+            content: data.message,
+          });
+          return;
+        }
+
+        Modal.success({
+          title: "Berhasil",
+          content: `Transaksi ${data.transaction_number} berhasil dibuat`,
+        });
+
+        setCart([]);
+        detailTransactionForm.resetFields();
+        setOpenModal(false);
+
+        setReload(prev => !prev); // reload stock
+      } catch (err) {
+        console.error(err);
+
+        Modal.error({
+          title: "Error",
+          content: "Terjadi kesalahan.",
+        });
+      }
+    }
+
+    useEffect(() => {
+        // To fetch user's data from API
+            (async () => {
+              const response = await fetch(`${API_URL}/get_products`);
+              const data = await response.json();
+              const responsePaymentMethod = await fetch(`${API_URL}/get_payment_methods`);
+              const dataPaymentMethods = await responsePaymentMethod.json();
+      
+              setProducts(data);
+              setPaymentMethods(dataPaymentMethods)
+              console.log("Fetched products:", data);
+              console.log("Fetched Payment Methods:", dataPaymentMethods);
+            })();
+        }, [reload]);
 
     return (
       <div className="pos-layout">
 
-        {/* Left */}
-        <div className="pos-products">
-          <div className="page-header">
-            <div>
-              <h2>Cashier</h2>
-              <p>Pilih produk </p>
-            </div>
+        {/* Header */}
+        <div className="page-header">
+          <div>
+            <h1>Cashier</h1>
+            <p>Pilih produk </p>
           </div>
+        </div>
+        
 
-          {/* Search Bar */}
-          <Input
-            placeholder="Cari produk..."
-            prefix={<SearchOutlined />}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-
-          <div className="product-grid">
-            <Card
-              className="custom-product-card"
-              onClick={() => setOpenCustomModal(true)}
-            >
-              <div className="custom-product-content">
-                <div className="custom-product-icon">
-                  📦<PlusOutlined />
-                </div>
-
-                <div className="custom-product-title">
-                  Other Item
-                </div>
-
-                <div className="custom-product-subtitle">
-                  Add custom product manually
-                </div>
+        {/* Left */}
+        <div className="pos-workspace">
+          <div className="pos-products">
+            {/* <div className="page-header">
+              <div>
+                <h2>Cashier</h2>
+                <p>Pilih produk </p>
               </div>
-            </Card>
-            {filteredProducts.map((product) => {
-              const price = product.price_promo > 0 ? product.price_promo : product.price_sell;
+            </div> */}
 
-              return (
-                <Card key={product.code}>
-                  <div className="product-card" onClick={() => addToCart(product)}>
+            {/* Search Bar */}
+            <Input
+              placeholder="Cari produk..."
+              prefix={<SearchOutlined />}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
 
-                    <div className="product-top">
-                      <Tag>
-                        {product.category}
-                      </Tag>
-                      <span>{product.code}</span>
-                    </div>
+            <div className="product-grid">
+              {/* UNCOMMAND IT IF YOU NEED CUSTOM ITEM */}
+              {/* <Card
+                className="custom-product-card"
+                onClick={() => setOpenCustomModal(true)}
+              >
+                <div className="custom-product-content">
+                  <div className="custom-product-icon">
+                    📦<PlusOutlined />
+                  </div>
 
-                    <p className="product-name">{product.name}</p>
+                  <div className="custom-product-title">
+                    Other Item
+                  </div>
 
-                    <div className="product-bottom">
+                  <div className="custom-product-subtitle">
+                    Add custom product manually
+                  </div>
+                </div>
+              </Card> */}
+              {filteredProducts.map((product) => {
+                console.log("Filtered Products", filteredProducts)
+                const price = product.price_promo > 0 ? product.price_promo : product.price_sell;
 
-                      <div>
-                        {
-                          product.price_promo > 0 && (
-                            <span className="price-normal">{formatIDR(product.price_sell)}</span>
-                          )
-                        }
-                        <p className="price-promo">{formatIDR(price)}</p>
+                return (
+                  <Card key={product.code}>
+                    <div className="product-card" onClick={() => addToCart(product)}>
+
+                      <div className="product-top">
+                        <Tag>
+                          {product.category}
+                        </Tag>
+                        <span>{product.code}</span>
                       </div>
 
-                      <span className="product-stock">{product.qty} pcs</span>
+                      <p className="product-name">{product.name}</p>
+
+                      <div className="product-bottom">
+
+                        <div>
+                          {
+                            product.price_promo > 0 && (
+                              <span className="price-normal">{formatIDR(product.price_sell)}</span>
+                            )
+                          }
+                          <p className="price-promo">{formatIDR(price)}</p>
+                        </div>
+
+                        <span className="product-stock">{product.qty} pcs</span>
+
+                      </div>
 
                     </div>
+                  </Card>
+                )
+              })}
+            </div>
 
-                  </div>
-                </Card>
-              )
-            })}
           </div>
 
-        </div>
-
-        {/* Right */}
-        <Card className="cart-card">
-          <div className="cart-header">
-            <div className="cart-title-wrapper">
-              <ShoppingCartOutlined />
-              <h2>Keranjang</h2>
+          {/* Right */}
+          <Card className="cart-card">
+            <div className="cart-header">
+              <div className="cart-title-wrapper">
+                <ShoppingCartOutlined />
+                <h2>Keranjang</h2>
+              </div>
             </div>
             
-            {
-              cart.length === 0 ? (
-                <p className="empty-cart">Belum ada item dipilih</p>
-              ) : (
-                cart.map((item) => {
-                  const price = item.price_promo > 0 ? item.price_promo : item.price_sell
+            <div className="cart-items">
+              {
+                cart.length === 0 ? (
+                  <p className="empty-cart">Belum ada item dipilih</p>
+                ) : (
+                  cart.map((item) => {
+                    const price = item.price_promo > 0 ? item.price_promo : item.price_sell
 
-                  return (
-                    <div
-                      className="cart-item"
-                      key={item.code}
-                    >
+                    return (
+                      <div
+                        className="cart-item"
+                        key={item.code}
+                      >
 
-                      <div className="cart-item-info">
+                        <div className="cart-item-info">
 
-                        <p className="cart-item-name">{item.name} {item.is_custom && (<Tag color="gold">Custom</Tag>)}</p>
-                        <p className="cart-item-price">{formatIDR(price)}</p>
+                          <p className="cart-item-name">{item.name} {item.is_custom && (<Tag color="gold">Custom</Tag>)}</p>
+                          <p className="cart-item-price">{formatIDR(price)}</p>
+
+                        </div>
+
+                        <div className="cart-actions">
+
+                          <Button
+                            icon={<MinusOutlined />}
+                            onClick={() => updateQty(item.code, -1)}
+                          />
+
+                          <span className="cart-qty">{item.qty}</span>
+
+                          <Button
+                            icon={<PlusOutlined />}
+                            onClick={() => updateQty(item.code, 1)}
+                          />
+
+                          <Button
+                            danger
+                            icon={<DeleteOutlined />}
+                            onClick={() => removeItem(item.code)}
+                          />
+                        </div>
 
                       </div>
-
-                      <div className="cart-actions">
-
-                        <Button
-                          icon={<MinusOutlined />}
-                          onClick={() => updateQty(item.code, -1)}
-                        />
-
-                        <span className="cart-qty">{item.qty}</span>
-
-                        <Button
-                          icon={<PlusOutlined />}
-                          onClick={() => updateQty(item.code, 1)}
-                        />
-
-                        <Button
-                          danger
-                          icon={<DeleteOutlined />}
-                          onClick={() => removeItem(item.code)}
-                        />
-                      </div>
-
-                    </div>
-                  )
-                })
-              )
-            }
-          </div>
-
-          <div className="cart-summary">
-
-            <div className="summary-row">
-              <span>Subtotal</span>
-              <span>{formatIDR(subtotal)}</span>
+                    )
+                  })
+                )
+              }
             </div>
 
-            <div className="summary-row">
-              <span>Pajak 10%</span>
-              <span>{formatIDR(tax)}</span>
+            <div className="cart-summary">
+
+              <div className="summary-row">
+                <span>Subtotal</span>
+                <span>{formatIDR(subtotal)}</span>
+              </div>
+
+              <div className="summary-row">
+                <span>Pajak 10%</span>
+                <span>{formatIDR(tax)}</span>
+              </div>
+
+              <div className="summary-total">
+                <span>Total</span>
+                <span>{formatIDR(total)}</span>
+              </div>
+
             </div>
 
-            <div className="summary-total">
-              <span>Total</span>
-              <span>{formatIDR(total)}</span>
-            </div>
+            <Button
+              type="primary"
+              block
+              disabled={cart.length === 0}
+              onClick={() => setOpenModal(true)}
+            >
+              Add Transaction
+            </Button>
 
-          </div>
-
-          <Button
-            type="primary"
-            block
-            disabled={cart.length === 0}
-            onClick={() => setOpenModal(true)}
-          >
-            Add Transaction
-          </Button>
-
-        </Card>
+          </Card>
+        </div>
 
         {/* Modal */}
         <Modal
@@ -338,51 +414,7 @@ const Transactions = () => {
           <Form
             form={detailTransactionForm}
             layout="vertical"
-            onFinish={(values) => {
-              console.log(values)
-              const payload = {
-                ...values,
-                tax,
-                total,
-                items: cart.map((item) => ({
-                  product_id: item.id,
-                  qty: item.qty,
-                  price:
-                    item.price_promo > 0
-                      ? item.price_promo
-                      : item.price_sell,
-                }))
-              }
-              console.log("payload: ", payload)
-              // Bisa masukin API di sini
-
-              detailTransactionForm.resetFields()
-              setCart([])
-              setOpenModal(false)
-              
-              // klo berhasil
-              Modal.confirm({
-                title: "Transaksi Berhasil",
-                content: "Apakah anda ingin mencetak struk transaksi?",
-                okText: "Print Struk",
-                cancelText: "Lewati",
-
-                onOk: () => {
-                  // redirect ke halaman print struk
-                  console.log("Struk berhasil dicetak")
-                },
-
-                onCancel: () => {
-                  console.log("Lewati print struk")
-                },
-              });
-
-              // klo gagal
-              // Modal.error({
-              //   title: "Gagal",
-              //   content: "Transaksi gagal ditambahkan, coba ulang kembali",
-              // })
-            }}
+            onFinish={checkOut}
           >
               <Form.Item
                 label="Nama Customer"
@@ -408,16 +440,20 @@ const Transactions = () => {
                 ]}
               >
                 <Select placeholder="Pilih metode"
-                  options={[
-                    { label: "Cash", value: "cash" },
-                    {label: "QRIS", value: "qris" },
-                    {label: "Debit", value: "debit" },
-                    {label: "Check Giro", value: "giro"}
-                  ]}
+                  // options={[
+                  //   { label: "Cash", value: "cash" },
+                  //   {label: "QRIS", value: "qris" },
+                  //   {label: "Debit", value: "debit" },
+                  //   {label: "Check Giro", value: "giro"}
+                  // ]}
+                  options={paymentMethods.map((item) => ({
+                    label: item.payment_method_name,
+                    value: item.id,
+                }))}
                 />
               </Form.Item>
 
-              <Form.Item
+              {/* <Form.Item
                 label="Tanggal"
                 name="transaction_date"
                 initialValue={dayjs()}
@@ -431,6 +467,24 @@ const Transactions = () => {
                 <DatePicker
                   format="DD/MM/YY"
                   style={{ width: "100%" }}
+                />
+              </Form.Item> */}
+              
+              <Form.Item
+                label="Status Pembayaran"
+                name="payment_status"
+                rules={[
+                  {
+                    required: true,
+                    message: "Status pembayaran wajib diisi",
+                  }
+                ]}
+              >
+                <Select placeholder="Pilih metode"
+                  options={[
+                    {label: "Paid", value: "paid" },
+                    {label: "Pending", value: "pending" },
+                  ]}
                 />
               </Form.Item>
 

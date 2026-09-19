@@ -6,11 +6,11 @@
 
 /* HEADER */
 
-.transactions-header {
+/* .transactions-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-}
+} */
 
 .transactions-title {
   font-size: 36px;
@@ -121,6 +121,37 @@
 
   border-radius: 8px !important;
   padding: 2px 10px !important;
+}
+
+.status-select-paid .ant-select-selector {
+    background: color-mix(in srgb, var(--success) 30%, white) !important;
+    border: none !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+}
+
+.status-select-pending .ant-select-selector {
+    background: color-mix(in srgb, var(--warning) 30%, white) !important;
+    border: none !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+}
+
+.status-select-paid .ant-select-selection-item,
+.status-select-pending .ant-select-selection-item {
+    color: var(--text-primary) !important;
+}
+
+.status-select-paid .ant-select-selector,
+.status-select-pending .ant-select-selector {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.status-select-paid.ant-select-focused .ant-select-selector,
+.status-select-pending.ant-select-focused .ant-select-selector {
+  border: none !important;
+  box-shadow: none !important;
 }
 
 /* BUTTON */

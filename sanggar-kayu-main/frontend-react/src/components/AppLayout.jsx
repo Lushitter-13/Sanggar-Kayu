@@ -6,12 +6,10 @@ import {
   FileTextOutlined,
   DatabaseOutlined,
   LogoutOutlined,
-  BellOutlined,
-  SearchOutlined,
   UserOutlined,
 } from "@ant-design/icons";
 
-import { Input, Button, message } from 'antd';
+import { message } from 'antd';
 import "../Styles/AppLayout.css";
 import logo from "../assets/logo.png";
 
@@ -31,7 +29,7 @@ const nav = [
         roles: [1, 2]
     },
     {
-        path: "/Pos",
+        path: "/pos",
         label: "POS",
         icon: FileTextOutlined,
         roles: [1, 2, 3]
@@ -114,7 +112,7 @@ const AppLayout = () => {
                     </div>
 
                     <div>
-                        <h2>Sanggar Kayu</h2>
+                        <h2>SEPATU INDAH</h2>
                         <p>Inventory & POS</p>
                     </div>
                 </div>
@@ -173,7 +171,7 @@ const AppLayout = () => {
             <div className="main-content">
                 
                 {/* HEADER */}
-                <header className="topbar">
+                {/* <header className="topbar">
 
                     <div className="topbar-right">
                         <div className="search-wrapper">
@@ -191,10 +189,9 @@ const AppLayout = () => {
                             className="notif-button"
                             icon={<BellOutlined size={18} />}
                         >
-                            {/* <BellOutlined size={18} /> */}
                         </Button>
                     </div>
-                </header>
+                </header> */}
 
                 {/* PAGE CONTENT */}
                 <main className="page-content">

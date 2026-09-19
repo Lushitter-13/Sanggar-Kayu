@@ -13,7 +13,7 @@
    HEADER
 ========================= */
 
-.products-header {
+/* .products-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
@@ -21,7 +21,7 @@
   gap: 16px;
 
   flex-wrap: wrap;
-}
+} */
 
 .products-title {
   font-size: 36px;

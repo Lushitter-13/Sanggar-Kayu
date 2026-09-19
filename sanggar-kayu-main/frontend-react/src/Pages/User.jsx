@@ -485,18 +485,6 @@ const Profile = () => {
               })
             }
 
-            // klo berhasil
-            // Modal.success({
-            //   title: "Berhasil",
-            //   content: "User berhasil dibuat",
-            // });
-
-            // klo gagal
-            // Modal.error({
-            //   title: "Gagal",
-            //   content: "User gagal dibuat, coba ulang kembali",
-            // })
-
             form.resetFields();
             setOpenUserModal(false);
             setReload(prev => !prev);

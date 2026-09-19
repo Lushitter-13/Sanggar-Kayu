@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from datetime import datetime
 import bcrypt
 from repositories.inventory_repository import (
     get_products,
@@ -9,7 +10,16 @@ from repositories.inventory_repository import (
     edit_user,
     update_product,
     update_product_stock,
-    get_transactions
+    # get_transactions,
+    # generate_transaction_number,
+    # add_transaction,
+    get_payment_method,
+)
+from repositories.transaction_repository import (
+    get_transactions,
+    generate_transaction_number,
+    add_transaction,
+    update_transaction
 )
 
 router = APIRouter()
@@ -49,16 +59,13 @@ def create_product(data: dict):
         description=data.get("description", None)
     )
     
-    if not result:
+    if not result["success"]:
         return {
             "success": False,
             "message": "Failed to add product"
         }
 
-    return {
-        "success": True,
-        "message": "Product added"
-    }
+    return result
     
 @router.put("/update_product/{product_id}")
 def update_existing_product(product_id: int, data: dict):
@@ -103,18 +110,74 @@ def update_product_stock_endpoint(product_id: int, data: dict):
     }
 
 # TRANSACTIONS
+@router.get("/get_payment_methods")
+def payment_method():
+    return get_payment_method()
+
 @router.get("/get_transactions")
 def transactions(
     id: int | None = None,
     transaction_number: str | None = None,
-    customer_name: str | None = None
+    customer_name: str | None = None,
+    start_date: datetime | None = None,
+    end_date: datetime | None = None,
 ):
     return get_transactions(
         id=id,
         transaction_number=transaction_number,
-        customer_name=customer_name
+        customer_name=customer_name,
+        start_date=start_date,
+        end_date=end_date,
     )
     
+@router.post("/checkout")
+def checkout(data:dict):
+    transaction_number = generate_transaction_number()
+        
+    result = add_transaction(
+        transaction_number=transaction_number,
+        customer_name=data["customer_name"],
+        user_id = data["user_id"],
+        payment_method=data["payment_method"],
+        total_price=data["total_price"],
+        transaction_date=datetime.now(),
+        status=data["status"],
+        notes=data.get("notes"),
+        details=data.get("details", []),
+    )
+
+
+    if not result["status"]:
+        return {
+            "success": False,
+            "message": result["message"],
+        }
+
+    return {
+        "success": True,
+        "message": result["message"],
+        "transaction_id": result["transaction_id"],
+        "transaction_number": transaction_number,
+    }
+    
+@router.patch("/update_transaction")
+def update(data: dict):
+    result = update_transaction(
+        id = data["id"],
+        status = data["status"]
+    )
+    
+    if not result:
+        return {
+            "success": False,
+            "message": "Failed to update transaction"
+        }
+    
+    return {
+        "success": True,
+        "message": "Transaction updated"
+    }
+
 # USERS
 @router.get("/get_users")
 def users(
