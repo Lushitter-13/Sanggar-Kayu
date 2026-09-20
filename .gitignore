@@ -1,0 +1,10 @@
+# Mengabaikan node_modules di folder frontend manapun
+**/node_modules/
+
+# Mengabaikan cache Python di folder backend manapun
+**/__pycache__/
+*.pyc
+
+# Mengabaikan file environment sensitif (opsional, buat jaga-jaga)
+*.env
+.env.*

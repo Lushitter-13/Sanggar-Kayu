@@ -1,43 +1,100 @@
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   DashboardOutlined,
-  AppstoreOutlined,
+//   AppstoreOutlined,
   ShoppingCartOutlined,
   FileTextOutlined,
   DatabaseOutlined,
   LogoutOutlined,
-  BellOutlined,
-  SearchOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
 
-import { Input, Button } from 'antd';
-import "../styles/AppLayout.css";
+import { message } from 'antd';
+import "../Styles/AppLayout.css";
+import logo from "../assets/logo.png";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 const nav = [
     {
         path: "/dashboard",
         label: "Dashboard",
-        icon: DashboardOutlined
+        icon: DashboardOutlined,
+        roles: [1, 2]
     },
     {
         path: "/products",
         label: "Products",
-        icon: ShoppingCartOutlined
+        icon: ShoppingCartOutlined,
+        roles: [1, 2]
     },
     {
-        path: "/Pos",
+        path: "/pos",
         label: "POS",
-        icon: FileTextOutlined
+        icon: FileTextOutlined,
+        roles: [1, 2, 3]
     },
     {
         path: "/transactions",
         label: "Transactions",
-        icon: DatabaseOutlined
+        icon: DatabaseOutlined,
+        roles: [1, 2]
     },
+    {
+        path: "/user",
+        label: "User",
+        icon: UserOutlined,
+        roles: [1]
+    }
 ];
 
 const AppLayout = () => {
     const location = useLocation();
+    const navigate = useNavigate();
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    const filteredNav = nav.filter((item) =>
+        item.roles.includes(user?.role)
+    );
+
+    const handleLogout = async () => {
+        try {
+            const response = await fetch(
+                `${API_URL}/logout`,
+                {
+                    method: "POST",
+                }
+            )
+
+            const data = await response.json();
+            if (data.success) {
+                message.success("Logout berhasil");
+                navigate("/login");
+            }
+        }
+
+        catch (error) {
+            console.error(error);
+            message.error("Terjadi kesalahan");
+        }
+    }
+
+    const getInitials = (name) => {
+        if (!name) {
+            return "";
+        }
+
+        const words = name.trim().split(" ");
+
+        if (words.length === 1) {
+            return words[0].charAt(0).toUpperCase();
+        }
+
+        return (
+            words[0].charAt(0) +
+            words[1].charAt(0)
+        ).toUpperCase();
+    };
 
     return (
         <div className="app-layout">
@@ -48,11 +105,14 @@ const AppLayout = () => {
                 {/* Logo */}
                 <div className="sidebar-logo">
                     <div className="sidebar-logo-icon">
-                        <AppstoreOutlined size={20} />
+                        <img
+                            src={logo}
+                            alt="Logo"
+                            className="sidebar-logo-image" />
                     </div>
 
                     <div>
-                        <h2>Sanggar Kayu</h2>
+                        <h2>SEPATU INDAH</h2>
                         <p>Inventory & POS</p>
                     </div>
                 </div>
@@ -60,7 +120,7 @@ const AppLayout = () => {
                 {/* Menu */}
                 <nav className="sidebar-nav">
 
-                    {nav.map((item) => {
+                    {filteredNav.map((item) => {
                        const isActive = location.pathname === item.path;
                        const Icon = item.icon;
                        
@@ -86,17 +146,20 @@ const AppLayout = () => {
                 <div className="sidebar-user">
 
                     <div className="user-avatar">
-                        AD
+                        {getInitials(user?.name)}
                     </div>
 
                     <div className="user-info">
-                        <p className='user-name'>Admin</p>
-                        <p className='user-email'>admin@example.com</p>
+                        <p className='user-greeting'>Welcome,</p>
+                        <p className='user-name-sidebar'>{user?.name || "Admin"}</p>
                     </div>
 
                     <Link
-                        to="/login"
+                        // to="/login"
                         className="logout-button"
+                        onClick={() => {
+                            handleLogout();
+                        }}
                     >
                         <LogoutOutlined size={18} />
                     </Link>
@@ -108,7 +171,7 @@ const AppLayout = () => {
             <div className="main-content">
                 
                 {/* HEADER */}
-                <header className="topbar">
+                {/* <header className="topbar">
 
                     <div className="topbar-right">
                         <div className="search-wrapper">
@@ -126,10 +189,9 @@ const AppLayout = () => {
                             className="notif-button"
                             icon={<BellOutlined size={18} />}
                         >
-                            {/* <BellOutlined size={18} /> */}
                         </Button>
                     </div>
-                </header>
+                </header> */}
 
                 {/* PAGE CONTENT */}
                 <main className="page-content">

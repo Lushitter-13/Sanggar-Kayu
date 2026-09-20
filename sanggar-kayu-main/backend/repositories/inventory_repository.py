@@ -1,9 +1,16 @@
 from database import conn, cursor
 import pymysql
+from datetime import datetime
 
 # PRODUCTS
 def get_products(product_id=None, product_code=None, product_name=None):
-    query = "SELECT * FROM products WHERE 1=1"
+    query = """
+        SELECT p.*, c.name as category
+        FROM product p
+        LEFT JOIN product_category c
+        ON p.category_id = c.id
+        WHERE 1=1
+    """
     params = []
     
     if product_id is not None:
@@ -22,15 +29,65 @@ def get_products(product_id=None, product_code=None, product_name=None):
 
     return cursor.fetchall()
 
-def add_product(product_code, product_name, category_id, qty, price_sell, price_promo=0, description=None):
+def add_product(
+    product_code,
+    product_name,
+    category_id,
+    qty,
+    price_sell,
+    price_promo=0,
+    description=None
+):
+    try:
 
-    sql = """
-    INSERT INTO product(code, name, category_id, qty, price_sell, price_promo, description)
-    VALUES(%s, %s, %s, %s, %s, %s, %s)
-    """
+        sql = """
+        INSERT INTO product
+        (code,name,category_id,qty,price_sell,price_promo,description)
+        VALUES
+        (%s,%s,%s,%s,%s,%s,%s)
+        """
 
-    cursor.execute(sql, (product_code, product_name, category_id, qty, price_sell, price_promo, description))
-    conn.commit()
+        cursor.execute(
+            sql,
+            (
+                product_code,
+                product_name,
+                category_id,
+                qty,
+                price_sell,
+                price_promo,
+                description,
+            )
+        )
+
+        conn.commit()
+
+        product_id = cursor.lastrowid
+
+        cursor.execute("""
+            SELECT *
+            FROM product
+            WHERE id = %s
+        """, (product_id,))
+
+        product = cursor.fetchone()
+
+        return {
+            "success": True,
+            "message": "Product added",
+            "product": product
+        }
+
+    except Exception as e:
+
+        conn.rollback()
+
+        print(e)
+
+        return {
+            "success": False,
+            "message": str(e)
+        }
 
 def update_product(product_id, product_code, product_name, category_id, qty, price_sell, price_promo=0, description=None):
     try:
@@ -53,6 +110,24 @@ def update_product(product_id, product_code, product_name, category_id, qty, pri
         print(e)
         return False
     
+def update_product_stock(product_id, qty):
+    try:
+        sql = """
+        UPDATE product
+        SET qty = %s
+        WHERE id = %s
+        """
+
+        affected_rows = cursor.execute(sql, (qty, product_id))
+        conn.commit()
+
+        return affected_rows
+
+    except Exception as e:
+        conn.rollback()
+        print(e)
+        return False
+    
 def delete_product(product_id):
     try:
         sql = "DELETE FROM product WHERE id = %s"
@@ -64,156 +139,302 @@ def delete_product(product_id):
         conn.rollback()
         print(e)
         return False
-    
-# TRANSACTIONS
-def get_transactions(id=None, transaction_number=None, customer_name=None):
-    query = "SELECT * FROM transaction WHERE 1=1"
+
+# CATEGORIES
+def get_categories(category_id=None, category_name=None):
+    query = "SELECT * FROM product_category WHERE 1=1"
     params = []
     
-    if id is not None:
+    if category_id is not None:
         query += " AND id = %s"
-        params.append(id)
-        
-    if transaction_number is not None:
-        query += " AND number = %s"
-        params.append(transaction_number)
+        params.append(category_id)
 
-    if customer_name is not None:
-        query += " AND customer_name = %s"
-        params.append(customer_name)
+    if category_name is not None:
+        query += " AND name = %s"
+        params.append(category_name)
+
+    cursor.execute(query, params)
+    return cursor.fetchall()
+
+# PAYMENT METHOD
+def get_payment_method():
+    query = """SELECT * FROM payment_method"""
+    cursor.execute(query)
+    return cursor.fetchall()
+
+# TRANSACTIONS
+# def get_transactions(id=None, transaction_number=None, customer_name=None):
+#     query = """SELECT
+#     t.*, td.product_id, p.name AS product_name, td.qty, td.price, td.total AS detail_total, pm.payment_method_name AS payment_method, u.name AS cashier_name
+#     FROM transaction t
+#     LEFT JOIN transaction_detail td ON t.id = td.transaction_id
+#     LEFT JOIN product p ON td.product_id = p.id
+#     LEFT JOIN payment_method pm ON t.payment_method_id = pm.id
+#     LEFT JOIN user u ON t.user_id = u.id
+#     WHERE 1=1"""
+#     params = []
+    
+#     if id is not None:
+#         query += " AND id = %s"
+#         params.append(id)
+        
+#     if transaction_number is not None:
+#         query += " AND transaction_number = %s"
+#         params.append(transaction_number)
+
+#     if customer_name is not None:
+#         query += " AND customer_name = %s"
+#         params.append(customer_name)
+
+#     cursor.execute(query, params)
+
+#     rows = cursor.fetchall()
+    
+#     transactions = {}
+    
+#     for row in rows:
+#         transaction_id = row["id"]
+        
+#         if transaction_id not in transactions:
+#             transactions[transaction_id] = {
+#                 "id": transaction_id,
+#                 "transaction_number": row["transaction_number"],
+#                 "cashier_name": row["cashier_name"],
+#                 "customer_name": row["customer_name"],
+#                 "payment_method": row["payment_method"],
+#                 "total_price": row["total"],
+#                 "transaction_date": row["date"],
+#                 "notes": row["notes"],
+#                 "details": []
+#             }
+        
+#         transactions[transaction_id]["details"].append({
+#             "product_id": row["product_id"],
+#             "product_name": row["product_name"],
+#             "qty": row["qty"],
+#             "price": row["price"],
+#             "total": row["detail_total"]
+#         })
+    
+#     return list(transactions.values())
+
+# def generate_transaction_number():
+#     year = datetime.now().year
+    
+#     cursor.execute("""
+#         SELECT MAX(
+#             CAST(SUBSTRING_INDEX(transaction_number, '-', -1) AS UNSIGNED)
+#         ) AS last_number
+#         FROM transaction
+#         WHERE transaction_number LIKE %s
+#     """, (f"INV-{year}-%",))
+
+#     result = cursor.fetchone()
+
+#     sequence = (result["last_number"] or 0) + 1
+
+#     return f"INV-{year}-{sequence:04d}"
+
+# def add_transaction(
+#     transaction_number,
+#     customer_name,
+#     user_id,
+#     payment_method,
+#     total_price,
+#     transaction_date,
+#     notes=None,
+#     details=None,
+#     status="Pending",
+# ):
+    
+#     if details is None:
+#         details = []
+
+#     try:
+
+#         # =========================
+#         # INSERT HEADER TRANSACTION
+#         # =========================
+
+#         sql_transaction = """
+#         INSERT INTO transaction
+#         (
+#             transaction_number,
+#             customer_name,
+#             user_id,
+#             payment_method_id,
+#             total,
+#             date,
+#             notes,
+#             status
+#         )
+#         VALUES
+#         (
+#             %s, %s, %s, %s, %s, %s, %s, %s
+#         )
+#         """
+
+#         cursor.execute(
+#             sql_transaction,
+#             (
+#                 transaction_number,
+#                 customer_name,
+#                 user_id,
+#                 payment_method,
+#                 total_price,
+#                 transaction_date,
+#                 notes,
+#                 status,
+#             ),
+#         )
+
+#         # ambil id transaksi yang baru dibuat
+#         transaction_id = cursor.lastrowid
+
+#         # =========================
+#         # INSERT DETAIL TRANSACTION
+#         # =========================
+
+#         sql_detail = """
+#         INSERT INTO transaction_detail
+#         (
+#             transaction_id,
+#             product_id,
+#             qty,
+#             price,
+#             total
+#         )
+#         VALUES
+#         (
+#             %s, %s, %s, %s, %s
+#         )
+#         """
+
+#         # =========================
+#         # UPDATE STOCK
+#         # =========================
+
+#         sql_update_stock = """
+#         UPDATE product
+#         SET qty = qty - %s
+#         WHERE id = %s
+#         """
+
+#         for detail in details:
+
+#             cursor.execute(
+#                 sql_detail,
+#                 (
+#                     transaction_id,
+#                     detail["product_id"],
+#                     detail["qty"],
+#                     detail["price"],
+#                     detail["total"],
+#                 ),
+#             )
+
+#             cursor.execute(
+#                 sql_update_stock,
+#                 (
+#                     detail["qty"],
+#                     detail["product_id"],
+#                 ),
+#             )
+
+#         conn.commit()
+
+#         return {
+#             "status": True,
+#             "code": 200,
+#             "message": "Transaction created successfully",
+#             "transaction_id": transaction_id,
+#         }
+
+#     except Exception as e:
+
+#         conn.rollback()
+
+#         return {
+#             "status": False,
+#             "code": 500,
+#             "message": str(e),
+#         }
+    
+# User
+def get_users(user_id=None, username=None, role=None):
+    query = """SELECT u.*, r.role_name as role_name
+    FROM user u
+    LEFT JOIN role r ON u.role = r.id
+    WHERE 1=1"""
+    params = []
+    
+    if user_id is not None:
+        query += " AND id = %s"
+        params.append(user_id)
+        
+    if username is not None:
+        query += " AND username = %s"
+        params.append(username)
+
+    if role is not None:
+        query += " AND role = %s"
+        params.append(role)
 
     cursor.execute(query, params)
 
     return cursor.fetchall()
 
-def add_transaction(
-    transaction_number,
-    customer_name,
-    payment_method,
-    total_price,
-    transaction_date,
-    notes=None,
-    details=None
-):
+def add_user(name, username, password, role, is_active=True):
+    sql = """
+    INSERT INTO user(name, username, password, role, is_active)
+    VALUES(%s, %s, %s, %s, %s)
+    """
+
+    affected_rows = cursor.execute(sql, (name, username, password, role, is_active))
+    conn.commit()
     
-    if details is None:
-        details = []
-
+    return affected_rows
+    
+# Profile
+def edit_user(user_id, name=None, username=None, password=None, role=None, is_active=None):
     try:
+        fields = []
+        values = []
 
-        # =========================
-        # INSERT HEADER TRANSACTION
-        # =========================
+        if name:
+            fields.append("name = %s")
+            values.append(name)
 
-        sql_transaction = """
-        INSERT INTO transaction
-        (
-            transaction_number,
-            customer_name,
-            payment_method,
-            total_price,
-            transaction_date,
-            notes
-        )
-        VALUES
-        (
-            %s, %s, %s, %s, %s, %s
-        )
-        """
+        if username:
+            fields.append("username = %s")
+            values.append(username)
 
-        cursor.execute(
-            sql_transaction,
-            (
-                transaction_number,
-                customer_name,
-                payment_method,
-                total_price,
-                transaction_date,
-                notes,
-            ),
-        )
+        if password:
+            fields.append("password = %s")
+            values.append(password)
 
-        # ambil id transaksi yang baru dibuat
-        transaction_id = cursor.lastrowid
+        if role:
+            fields.append("role = %s")
+            values.append(role)
+            
+        if is_active:
+            fields.append("is_active = %s")
+            values.append(is_active)
 
-        # =========================
-        # INSERT DETAIL TRANSACTION
-        # =========================
+        if not fields:
+            return False
 
-        sql_detail = """
-        INSERT INTO transaction_detail
-        (
-            transaction_id,
-            product_id,
-            qty,
-            price,
-            total
-        )
-        VALUES
-        (
-            %s, %s, %s, %s, %s
-        )
-        """
-
-        # =========================
-        # UPDATE STOCK
-        # =========================
-
-        sql_update_stock = """
-        UPDATE product
-        SET qty = qty - %s
+        sql = f"""
+        UPDATE user
+        SET {", ".join(fields)}
         WHERE id = %s
         """
 
-        for detail in details:
+        values.append(user_id)
 
-            cursor.execute(
-                sql_detail,
-                (
-                    transaction_id,
-                    detail["product_id"],
-                    detail["qty"],
-                    detail["price"],
-                    detail["total"],
-                ),
-            )
-
-            cursor.execute(
-                sql_update_stock,
-                (
-                    detail["qty"],
-                    detail["product_id"],
-                ),
-            )
-
+        affected_rows = cursor.execute(sql, tuple(values))
         conn.commit()
 
-        return {
-            "status": True,
-            "code": 200,
-            "message": "Transaction created successfully",
-            "transaction_id": transaction_id,
-        }
-
-    except Exception as e:
-
-        conn.rollback()
-
-        return {
-            "status": False,
-            "code": 500,
-            "message": str(e),
-        }
-    
-def updateStock(id, qty):
-    try:
-        sql = """
-        UPDATE product
-        SET qty = %s
-        WHERE id = %s
-        """
-        affected_rows = cursor.execute(sql, (qty, id))
-        conn.commit()
         return affected_rows
 
     except Exception as e:

@@ -1,9 +1,13 @@
 import { Link } from "react-router-dom";
+import { useState, useMemo, useEffect } from "react";
 import { Card, Tag, Button } from "antd";
+import dayjs from "dayjs";
 import {
   ArrowUpRight,
   Boxes,
   TrendingUp,
+  TrendingDown,
+  Minus,
   Wallet,
   AlertTriangle,
   // Divide,
@@ -11,47 +15,47 @@ import {
 
 import "../Styles/Dashboard.css";
 
-// Dummy Data
-const products = [
-  {
-    code: "PRD001",
-    name: "Meja Kayu Jati",
-    qty: 2,
-    unit: "pcs",
-    status: "Low Stock",
-  },
-  {
-    code: "PRD002",
-    name: "Kursi Minimalis",
-    qty: 0,
-    unit: "pcs",
-    status: "Out of Stock",
-  },
-];
+const API_URL = import.meta.env.VITE_API_URL;
+// const products = [
+//   {
+//     code: "PRD001",
+//     name: "Meja Kayu Jati",
+//     qty: 2,
+//     unit: "pcs",
+//     status: "Low Stock",
+//   },
+//   {
+//     code: "PRD002",
+//     name: "Kursi Minimalis",
+//     qty: 0,
+//     unit: "pcs",
+//     status: "Out of Stock",
+//   },
+// ];
 
-const transactions = [
-  {
-    id: "TRX001",
-    customer: "Wilson",
-    payment: "Cash",
-    total: 2500000,
-    status: "Paid",
-  },
-  {
-    id: "TRX002",
-    customer: "Michael",
-    payment: "Transfer",
-    total: 1200000,
-    status: "Pending",
-  },
-  {
-    id: "TRX003",
-    customer: "Jonathan",
-    payment: "QRIS",
-    total: 850000,
-    status: "Paid",
-  },
-];
+// const transactions = [
+//   {
+//     id: "TRX001",
+//     customer: "Wilson",
+//     payment: "Cash",
+//     total: 2500000,
+//     status: "Paid",
+//   },
+//   {
+//     id: "TRX002",
+//     customer: "Michael",
+//     payment: "Transfer",
+//     total: 1200000,
+//     status: "Pending",
+//   },
+//   {
+//     id: "TRX003",
+//     customer: "Jonathan",
+//     payment: "QRIS",
+//     total: 850000,
+//     status: "Paid",
+//   },
+// ];
 
 const formatIDR = (number) => {
   return new Intl.NumberFormat("id-ID", {
@@ -72,10 +76,14 @@ function StatCard ({ label, value, delta, trend, icon: Icon}) {
             className={`stat-delta ${
               trend === "up"
                 ? "trend-up"
-                : "trend-down"
+                : trend === "down"
+                  ? "trend-down"
+                  : "trend-neutral"
             }`}
           >
-            <TrendingUp size={14} />
+            {trend === "up" && <TrendingUp size={14} />}
+            {trend === "down" && <TrendingDown size={14} />}
+            {trend !== "up" && trend !== "down" && <Minus size={14} />}
             <span>{delta}</span>
           </div>
 
@@ -89,7 +97,83 @@ function StatCard ({ label, value, delta, trend, icon: Icon}) {
 }
 
 const Dashboard = () => {
-  const lowStock = products. filter((p) => p.status !== "Active");
+  const [transactions, setTransactions] = useState([]);
+  const [products, setProducts] = useState([]);
+
+  const transactionToday = useMemo(() => {
+    const today = dayjs()
+
+    return transactions.filter((transaction) =>
+    dayjs(transaction.transaction_date).isSame(today, "day"))
+  }, [transactions])
+
+  const transactionYesterday = useMemo(() => {
+    const yesterday = dayjs().subtract(1, "day")
+
+    return transactions.filter((transaction) =>
+        dayjs(transaction.transaction_date).isSame(yesterday, "day")
+    );
+  }, [transactions])
+
+  const transactionTodayCount = transactionToday.length;
+  const transactionYesterdayCount = transactionYesterday.length;
+  const transactionDifference = transactionTodayCount - transactionYesterdayCount
+
+  const incomeToday = transactionToday.reduce(
+    (total, transaction) =>
+        total + Number(transaction.total_price || 0),
+    0
+  );
+
+  const incomeYesterday = transactionYesterday.reduce(
+    (total, transaction) =>
+        total + Number(transaction.total_price || 0),
+    0
+  );
+
+  const incomeDifference =
+    incomeYesterday === 0
+      ? 0
+      : incomeToday - incomeYesterday;
+
+  const incomeDifferencePercentage =
+    incomeYesterday === 0
+      ? 0
+      : (incomeDifference / incomeYesterday) * 100;
+
+  const newProducts = products.filter((product) =>
+    dayjs(product.created_at).isSame(dayjs(), "day")
+  );
+
+  const newProductsCount = newProducts.length
+
+  const lowStock = products
+  .filter(product => product.qty <= 5)
+  .sort((a, b) => a.qty - b.qty);
+
+  console.log("TODAY: ", transactionTodayCount)
+  console.log("YESTERDAY: ", transactionYesterdayCount)
+  console.log("DIFFERENCE: ", transactionDifference)
+
+  useEffect(() => {
+    (async () => {
+      const today = dayjs();
+      const yesterday = dayjs().subtract(1, "day");
+      const tomorrow = today.add(1, "day");
+
+      const transactionResponse = await fetch (`${API_URL}/get_transactions?start_date=${yesterday.format("YYYY-MM-DD")}&end_date=${tomorrow.format("YYYY-MM-DD")}`)
+      const transactionData = await transactionResponse.json()
+
+      const productResponse = await fetch(`${API_URL}/get_products`)
+      const productData = await productResponse.json()
+
+      console.log("DATA TRANSAKSI: ", transactionData)
+      console.log("DATA PRODUK: ", productData)
+
+      setTransactions(transactionData)
+      setProducts(productData)
+    })();
+  }, [])
 
   return (
     <div className="dashboard-container">
@@ -104,7 +188,7 @@ const Dashboard = () => {
           </p>
         </div>
 
-        <Link to = "/transactions">
+        <Link to = "/pos">
           <Button type="primary" className="cashier-button">
             Open Cashier
             <ArrowUpRight size={16} />
@@ -117,33 +201,33 @@ const Dashboard = () => {
 
         <StatCard
           label="PENDAPATAN HARI INI"
-          value={formatIDR(9995000)}
-          delta="+12.4% vs kemarin"
-          trend="up"
+          value={formatIDR(incomeToday)}
+          delta={`${incomeDifference >= 0 ? "+" : ""}${incomeDifferencePercentage.toFixed(1)}% vs kemarin`}
+          trend={incomeDifference >= 0 ? "up" : "down"}
           icon={Wallet}
         />
 
         <StatCard
-          label="TRANSAKSI"
-          value="24"
-          delta="+3 transaksi"
-          trend="up"
+          label="TRANSAKSI HARI INI"
+          value={transactionTodayCount}
+          delta={`${transactionDifference >= 0 ? "+" : ""}${transactionDifference} transaksi`}
+          trend={transactionDifference >= 0 ? "up" : "down"}
           icon={TrendingUp}
         />
 
         <StatCard
           label="TOTAL SKU"
-          value="120"
-          delta="+1 produk baru"
-          trend="up"
+          value={products.length}
+          delta={`${newProductsCount > 0 ? `+ ${newProductsCount} produk baru` : "Tidak ada produk baru"}`}
+          trend={newProductsCount > 0 ? "up" : "neutral"}
           icon={Boxes}
         />
 
         <StatCard
           label="STOK MENIPIS"
           value={String(lowStock.length)}
-          delta="Perlu restock"
-          trend= {lowStock.length > 0 ? "down" : "up"}
+          delta={`${lowStock.length > 0 ? `${lowStock.length} item perlu restock` : "Semua stok aman"}`}
+          trend= {lowStock.length > 0 ? "down" : "neutral"}
           icon={AlertTriangle}
         />
 
@@ -157,7 +241,7 @@ const Dashboard = () => {
           <div className="card-header">
             <h2>Transaksi Terbaru</h2>
 
-            <Link to="/transaction">Lihat Semua</Link>
+            <Link to="/transactions">Lihat Semua</Link>
           </div>
           <div className="transaction-list">
             {transactions.map((transaction) => (
@@ -165,24 +249,24 @@ const Dashboard = () => {
               <div className="transaction-item" key={transaction.id}>
                 <div>
                   <p className="transaction-customer">
-                    {transaction.customer}
+                    {transaction.customer_name}
                   </p>
 
                   <p className="transaction-meta">
-                    {transaction.id} • {transaction.payment}
+                    {transaction.id} • {transaction.payment_method_code}
                   </p>
                 </div>
 
                 <div className="transaction-right">
                   <p className="transaction-total">
-                    {formatIDR(transaction.total)}
+                    {formatIDR(transaction.total_price)}
                   </p>
                   <Tag
-                  color={
-                    transaction.status === "Paid"
-                    ? "green"
-                    : "orange"
-                  }
+                    className={
+                      transaction.status === "paid"
+                      ? "dashboard-status-paid"
+                      : "dashboard-status-pending"
+                    }
                   >
                     {transaction.status}
                   </Tag>
@@ -222,7 +306,7 @@ const Dashboard = () => {
 
                 <Tag
                   className={
-                    product.status === "Out of Stock"
+                    product.qty === 0
                       ? "stock-tag danger"
                       : "stock-tag warning"
                   }

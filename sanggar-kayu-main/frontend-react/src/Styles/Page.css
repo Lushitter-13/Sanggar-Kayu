@@ -1,0 +1,26 @@
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+
+  gap: 16px;
+  flex-wrap: wrap;
+
+  margin-bottom: 24px;
+}
+
+.page-header h1 {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--text-primary);
+
+  margin: 0 0 4px 0;
+  line-height: 1.2;
+}
+
+.page-header p {
+  color: var(--text-secondary);
+
+  margin: 0;
+  line-height: 1.5;
+}
