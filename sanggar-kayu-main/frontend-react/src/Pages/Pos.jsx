@@ -129,7 +129,7 @@ const Transactions = () => {
     }
 
     const checkOut = async (values) => {
-      console.log("VALUES: ", values)
+      // console.log("VALUES: ", values)
       if (cart.length === 0) {
         Modal.warning ({
           title: "Cart kosong",
@@ -140,7 +140,7 @@ const Transactions = () => {
 
       try {
         const user_id = JSON.parse(localStorage.getItem("user"))?.id;
-        console.log("Status:", values.payment_status)
+        // console.log("Status:", values.payment_status)
         const response = await fetch(`${API_URL}/checkout`, {
           method: "POST",
           headers: {
@@ -215,8 +215,8 @@ const Transactions = () => {
       
               setProducts(data);
               setPaymentMethods(dataPaymentMethods)
-              console.log("Fetched products:", data);
-              console.log("Fetched Payment Methods:", dataPaymentMethods);
+              // console.log("Fetched products:", data);
+              // console.log("Fetched Payment Methods:", dataPaymentMethods);
             })();
         }, [reload]);
 
@@ -271,7 +271,7 @@ const Transactions = () => {
                 </div>
               </Card> */}
               {filteredProducts.map((product) => {
-                console.log("Filtered Products", filteredProducts)
+                // console.log("Filtered Products", filteredProducts)
                 const price = product.price_promo > 0 ? product.price_promo : product.price_sell;
 
                 return (

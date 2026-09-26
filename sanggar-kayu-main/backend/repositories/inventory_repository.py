@@ -35,16 +35,17 @@ def add_product(
     category_id,
     qty,
     price_sell,
+    status,
     price_promo=0,
-    description=None
+    description=None,
 ):
     try:
 
         sql = """
         INSERT INTO product
-        (code,name,category_id,qty,price_sell,price_promo,description)
+        (code,name,category_id,qty,price_sell,price_promo,description, status)
         VALUES
-        (%s,%s,%s,%s,%s,%s,%s)
+        (%s,%s,%s,%s,%s,%s,%s,%s)
         """
 
         cursor.execute(
@@ -57,6 +58,7 @@ def add_product(
                 price_sell,
                 price_promo,
                 description,
+                status,
             )
         )
 

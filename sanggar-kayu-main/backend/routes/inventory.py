@@ -56,7 +56,8 @@ def create_product(data: dict):
         qty=data["qty"],
         price_sell=data["price_sell"],
         price_promo=data.get("price_promo", 0),
-        description=data.get("description", None)
+        description=data.get("description", None),
+        status=data.get("status"),
     )
     
     if not result["success"]:
@@ -67,10 +68,10 @@ def create_product(data: dict):
 
     return result
     
-@router.put("/update_product/{product_id}")
-def update_existing_product(product_id: int, data: dict):
+@router.put("/update_product")
+def update_existing_product(data: dict):
     result = update_product(
-        product_id=product_id,
+        product_id=data["id"],
         product_code=data["code"],
         product_name=data["name"],
         category_id=data["category_id"],

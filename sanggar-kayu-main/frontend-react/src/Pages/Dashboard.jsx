@@ -151,9 +151,9 @@ const Dashboard = () => {
   .filter(product => product.qty <= 5)
   .sort((a, b) => a.qty - b.qty);
 
-  console.log("TODAY: ", transactionTodayCount)
-  console.log("YESTERDAY: ", transactionYesterdayCount)
-  console.log("DIFFERENCE: ", transactionDifference)
+  // console.log("TODAY: ", transactionTodayCount)
+  // console.log("YESTERDAY: ", transactionYesterdayCount)
+  // console.log("DIFFERENCE: ", transactionDifference)
 
   useEffect(() => {
     (async () => {
@@ -167,8 +167,8 @@ const Dashboard = () => {
       const productResponse = await fetch(`${API_URL}/get_products`)
       const productData = await productResponse.json()
 
-      console.log("DATA TRANSAKSI: ", transactionData)
-      console.log("DATA PRODUK: ", productData)
+      // console.log("DATA TRANSAKSI: ", transactionData)
+      // console.log("DATA PRODUK: ", productData)
 
       setTransactions(transactionData)
       setProducts(productData)

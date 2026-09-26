@@ -48,7 +48,7 @@ const Transactions = () => {
     const [reload, setReload] = useState(false);
 
     const filteredTransactions = useMemo(() => {
-        console.log("Payment Method Filter: ", paymentMethod)
+        // console.log("Payment Method Filter: ", paymentMethod)
         return transactions.filter((transaction) => {
             const matchPayment =
                 paymentMethod === "all" ||
@@ -123,7 +123,7 @@ const Transactions = () => {
     }
 
     const handleViewTransaction = (record) => {
-        console.log("View transaction:", record);
+        // console.log("View transaction:", record);
         setSelectedTransaction(record);
         setModalMode("view");
         setOpenDetailModal(true);

@@ -128,10 +128,10 @@ const Products = () => {
         setStockModalOpen(true);
     };
     const handleSaveStock = () => {
-        console.log({
-            product: selectedProduct,
-            qty: stockQty,
-        });
+        // console.log({
+        //     product: selectedProduct,
+        //     qty: stockQty,
+        // });
         // Input ke API untuk update stock
 
         setStockModalOpen(false);
@@ -140,11 +140,64 @@ const Products = () => {
 
     const handleAddProduct = async (values) => {
         try {
-            console.log("Form Values:", values);
+            console.log("Values:", values);
             if (editingProduct) {
                 console.log("EDIT PRODUCT");
+                const responseEditProduct = await fetch(`${API_URL}/update_product`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        id: editingProduct.id,
+                        code: values.code,
+                        name: values.name,
+                        category_id: editingProduct.category_id,
+                        qty: values.qty,
+                        price_sell: values.price_sell,
+                        price_promo: values.price_promo || 0,
+                        description: values.description || null,
+                    }),
+                });
+
+                const editProductData = await responseEditProduct.json();
+                
+                if (!editProductData.success) {
+                    Modal.error({
+                        title: "Gagal",
+                        content: editProductData.message || "Produk gagal diubah",
+                    });
+                    return;
+                }
+
             } else {
-                console.log("ADD PRODUCT");
+                console.log("ADD PRODUCT: ", values);
+                const responseAddProduct = await fetch(`${API_URL}/add_product`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        code: values.code,
+                        name: values.name,
+                        category_id: values.category_id,
+                        qty: values.qty,
+                        price_sell: values.price_sell,
+                        price_promo: values.price_promo || 0,
+                        description: values.description || null,
+                        status: values.status,
+                    }),
+                });
+
+                const addProductData = await responseAddProduct.json();
+
+                if (!addProductData.success) {
+                    Modal.error({
+                        title: "Gagal",
+                        content: addProductData.message || "Produk gagal dibuat",
+                    });
+                    return;
+                }
             }
 
             Modal.success({
@@ -300,7 +353,7 @@ const Products = () => {
             const dataCategories = await responseCategories.json();
 
             setCategories(dataCategories);
-            console.log("Fetched Product: ", dataProducts, "\n Fetched Categories: ", dataCategories);
+            console.log("Fetched Categories: ", dataProducts, "\n Fetched Categories: ", dataCategories);
         })();
     }, [reload]);
 
@@ -416,35 +469,6 @@ const Products = () => {
                         description: editingProduct?.description || "",
                     }}
                     onFinish={(values) => {
-                        // console.log(values);
-
-                        // if (editingProduct) {
-                        //     console.log("EDIT PRODUCT");
-                        // } else {
-                        //     console.log("ADD PRODUCT");
-                        // }
-
-                        // // klo berhasil
-                        // Modal.success({
-                        //     title: "Berhasil",
-                        //     content: editingProduct != null
-                        //     ? "Produk berhasil diubah"
-                        //     : "Produk berhasil ditambahkan",
-                        // });
-
-                        
-                        // // klo gagal
-                        // // Modal.error({
-                        // //       title: "Gagal",
-                        // //       content: editingProduct != null
-                        // //       ? "Produk gagal diubah, coba kembali"
-                        // //       : "Produk gagal ditambahkan, coba kembali",
-                        // // })
-
-                        // setOpenModal(false);
-                        // form.resetFields();
-                        // setEditingProduct(null);
-                        // setReload(prev => !prev)
                         handleAddProduct(values);
                     }}
                 >
@@ -464,7 +488,7 @@ const Products = () => {
 
                             <Form.Item
                                 label="Kategori"
-                                name="category"
+                                name="category_id"
                                 rules={[
                                     {
                                         required: true,
@@ -474,12 +498,11 @@ const Products = () => {
                             >
                                 <Select
                                     placeholder="Pilih kategori"
-                                    options={categories
-                                        .filter((cat) => cat !== "All")
-                                        .map((cat) => ({
-                                            label: cat,
-                                            value: cat,
-                                        }))}
+                                    options={categories.map((cat) => ({
+                                        label: cat.name,
+                                        value: cat.id
+                                    }))
+                                    }
                                 />
                             </Form.Item>
                         </div>

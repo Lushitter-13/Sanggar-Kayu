@@ -20,7 +20,7 @@ const nav = [
         path: "/dashboard",
         label: "Dashboard",
         icon: DashboardOutlined,
-        roles: [1, 2]
+        roles: [1]
     },
     {
         path: "/products",
@@ -38,7 +38,7 @@ const nav = [
         path: "/transactions",
         label: "Transactions",
         icon: DatabaseOutlined,
-        roles: [1, 2]
+        roles: [1, 2, 3]
     },
     {
         path: "/user",

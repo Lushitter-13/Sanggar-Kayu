@@ -29,7 +29,7 @@ const Index = () => {
       )
 
       const data = await response.json();
-      console.log("Data", data);
+      // console.log("Data", data);
 
       if (!data.success) {
         message.error(data.message);
@@ -37,7 +37,7 @@ const Index = () => {
       }
 
       message.success(data.message);
-      console.log(data.user);
+      // console.log(data.user);
       localStorage.setItem(
         "user",
         JSON.stringify(data.user)
